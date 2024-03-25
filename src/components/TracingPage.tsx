@@ -57,6 +57,9 @@ export default function TracingPage() {
               </Text>
             </TextContent>
           )}
+
+          {/* <EmbeddedPanel /> */}
+
         </PageSection>
       </Page>
     </>

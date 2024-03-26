@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 
 import { ChartsProvider, generateChartsTheme, getTheme, SnackbarProvider } from "@perses-dev/components";
 import {
@@ -8,7 +8,7 @@ import {
   TimeRangeProvider
 } from "@perses-dev/plugin-system";
 import { TimeSeriesChart, ScatterChart } from '@perses-dev/panels-plugin';
-import { ThemeProvider } from "@mui/material";
+import { makeStyles, ThemeProvider } from "@mui/material";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { DatasourceStoreProvider, TemplateVariableProvider } from "@perses-dev/dashboards";
 import prometheusResource from '@perses-dev/prometheus-plugin/plugin.json';
@@ -19,6 +19,7 @@ import tempoResource from '@perses-dev/tempo-plugin/plugin.json';
 import { TextInput, Button } from '@patternfly/react-core';
 
 import { TableBasic } from './Table';
+import { ScatterChartPanel } from './CloneComponents/ScatterChartPanel';
 
 const fakeDatasource: GlobalDatasource = {
     kind: 'GlobalDatasource',
@@ -109,10 +110,39 @@ function ScatterPanel() {
                         {
                             kind: 'TempoTraceQuery',
                             spec: { query: value },
-                          },
+                        },
                       ]}
                     >
-                    <TimeSeriesChart.PanelComponent
+
+
+                    <ScatterChartPanel
+                        contentDimensions={{
+                        width: 1000,
+                        height: 400,
+                        }}
+                        spec={{
+                        legend: {
+                            position: 'bottom',
+                            size: 'medium',
+                        },
+                        }}
+                    />
+
+                    {/* <ScatterChart.PanelComponent
+                        contentDimensions={{
+                        width: 1000,
+                        height: 400,
+                        }}
+                        spec={{
+                        legend: {
+                            position: 'bottom',
+                            size: 'medium',
+                        },
+                        }}
+                    /> */}
+                                        
+                    
+                    {/* <TimeSeriesChart.PanelComponent
                         contentDimensions={{
                           width: 0,
                           height: 0,
@@ -123,19 +153,7 @@ function ScatterPanel() {
                             size: 'medium',
                           },
                         }}
-                      />
-                      <ScatterChart.PanelComponent
-                        contentDimensions={{
-                          width: 1000,
-                          height: 400,
-                        }}
-                        spec={{
-                          legend: {
-                            position: 'bottom',
-                            size: 'medium',
-                          },
-                        }}
-                      />
+                      /> */}
                     <TextInput
                         ref={ref}
                         // value={value}

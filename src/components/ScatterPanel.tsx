@@ -18,6 +18,8 @@ import { DatasourceApi } from '@perses-dev/dashboards';
 import tempoResource from '@perses-dev/tempo-plugin/plugin.json';
 import { TextInput, Button } from '@patternfly/react-core';
 
+import { TableBasic } from './Table';
+
 const fakeDatasource: GlobalDatasource = {
     kind: 'GlobalDatasource',
     metadata: { name: 'hello' },
@@ -58,7 +60,6 @@ export const fakeDashboard = { kind: 'Dashboard', metadata: {}, spec: {} } as Da
 
 function ScatterPanel() {
    const [value, setValue] = React.useState('{}');
-
     // Use ref to prevent reload on each key tap in TraceQL input box
    const ref = React.useRef<HTMLInputElement>(null);
 
@@ -125,7 +126,7 @@ function ScatterPanel() {
                       />
                       <ScatterChart.PanelComponent
                         contentDimensions={{
-                          width: 1200,
+                          width: 1000,
                           height: 400,
                         }}
                         spec={{
@@ -150,6 +151,7 @@ function ScatterPanel() {
                       >
                         Submit
                       </Button>
+                      <TableBasic />
                     </DataQueriesProvider>
                   </DatasourceStoreProvider>
                 </TemplateVariableProvider>

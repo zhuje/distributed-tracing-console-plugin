@@ -58,18 +58,24 @@ export function ScatterChartPanel(props: ScatterChartPanelProps) {
   const { contentDimensions } = props;
   const traceQueryResults = useDataQueries('TraceQuery');
   const { queryResults: traceResults, isLoading: traceIsLoading, isFetching } = useDataQueries('TraceQuery');
+  const timesSeriesQueryResults = useDataQueries('TimeSeriesQuery');
+
   const chartsTheme = useChartsTheme();
   const defaultColor = chartsTheme.thresholds.defaultColor || 'blue';
 
 
   const hasData = traceResults.some((result) => result.data && result.data.traces.length > 0);
 
-  console.log('ScatterChaterPanel > traceResult:', traceQueryResults)
+  console.log('ScatterChaterPanel > traceQueryResults:', traceQueryResults)
+  console.log('ScatterChaterPanel > traceResult:', traceResults)
   console.log('ScatterChaterPanel > hasData:', hasData)
+  console.log('ScatterChaterPanel > timeSeriesResults:', timesSeriesQueryResults)
+
+  
 
   if (!hasData){
     return (
-        <h1> NO DATA </h1> 
+        <h1> NO DATA</h1> 
     )
   }
 

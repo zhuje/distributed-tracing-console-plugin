@@ -18,8 +18,9 @@ import { GridComponent, TitleComponent, TooltipComponent } from 'echarts/compone
 import { CanvasRenderer } from 'echarts/renderers';
 import { EChartsOption } from 'echarts';
 import React from 'react';
+import { DataZoomComponent, LegendComponent } from 'echarts/components';
 
-use([EChartsScatterChart, GridComponent, TitleComponent, TooltipComponent, CanvasRenderer]);
+use([DataZoomComponent,LegendComponent, EChartsScatterChart, GridComponent, TitleComponent, TooltipComponent, CanvasRenderer]);
 
 interface ScatterplotProps {
   width: number;

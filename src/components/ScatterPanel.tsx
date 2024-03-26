@@ -1,5 +1,4 @@
 import React from 'react';
-import './App.css';
 
 import { ChartsProvider, generateChartsTheme, getTheme, SnackbarProvider } from "@perses-dev/components";
 import {
@@ -56,7 +55,7 @@ class DatasourceApiImpl implements DatasourceApi {
 export const fakeDatasourceApi = new DatasourceApiImpl();
 export const fakeDashboard = { kind: 'Dashboard', metadata: {}, spec: {} } as DashboardResource;
 
-function App() {
+function ScatterPanel() {
   const muiTheme = getTheme('light');
   const chartsTheme = generateChartsTheme(muiTheme, {});
   const pluginLoader = dynamicImportPluginLoader([
@@ -126,4 +125,4 @@ function App() {
 }
 
 
-export default App;
+export default ScatterPanel;

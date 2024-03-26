@@ -7,7 +7,7 @@ import {
   PluginRegistry,
   TimeRangeProvider
 } from "@perses-dev/plugin-system";
-import { TimeSeriesChart } from '@perses-dev/panels-plugin';
+import { TimeSeriesChart, ScatterChart } from '@perses-dev/panels-plugin';
 import { ThemeProvider } from "@mui/material";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { DatasourceStoreProvider, TemplateVariableProvider } from "@perses-dev/dashboards";
@@ -15,21 +15,22 @@ import prometheusResource from '@perses-dev/prometheus-plugin/plugin.json';
 import panelsResource from '@perses-dev/panels-plugin/plugin.json';
 import { DashboardResource, GlobalDatasource, ProjectDatasource } from '@perses-dev/core';
 import { DatasourceApi } from '@perses-dev/dashboards';
-
+import tempoResource from '@perses-dev/tempo-plugin/plugin.json';
+import { TextInput, Button } from '@patternfly/react-core';
 
 const fakeDatasource: GlobalDatasource = {
-  kind: 'GlobalDatasource',
-  metadata: { name: 'hello' },
-  spec: {
-    default: true,
-    plugin: {
-      kind: 'PrometheusDatasource',
-      spec: {
-        directUrl: "https://prometheus.demo.do.prometheus.io"
+    kind: 'GlobalDatasource',
+    metadata: { name: 'hello' },
+    spec: {
+      default: true,
+      plugin: {
+        kind: 'TempoDatasource',
+        spec: {
+          directUrl: "/api/proxy/plugin/distributed-tracing-plugin/backend"
+        },
       },
     },
-  },
-};
+  };
 
 class DatasourceApiImpl implements DatasourceApi {
   getDatasource(): Promise<ProjectDatasource | undefined> {
@@ -49,13 +50,18 @@ class DatasourceApiImpl implements DatasourceApi {
   }
 
   buildProxyUrl(): string {
-    return '/prometheus';
+    return '/';
   }
 }
 export const fakeDatasourceApi = new DatasourceApiImpl();
 export const fakeDashboard = { kind: 'Dashboard', metadata: {}, spec: {} } as DashboardResource;
 
 function ScatterPanel() {
+   const [value, setValue] = React.useState('{}');
+
+    // Use ref to prevent reload on each key tap in TraceQL input box
+   const ref = React.useRef<HTMLInputElement>(null);
+
   const muiTheme = getTheme('light');
   const chartsTheme = generateChartsTheme(muiTheme, {});
   const pluginLoader = dynamicImportPluginLoader([
@@ -67,6 +73,10 @@ function ScatterPanel() {
       resource: panelsResource as PluginModuleResource,
       importPlugin: () => import('@perses-dev/panels-plugin'),
     },
+    {
+        resource: tempoResource as PluginModuleResource,
+        importPlugin: () => import('@perses-dev/tempo-plugin'),
+      },
   ]);
 
   const queryClient = new QueryClient({
@@ -84,8 +94,9 @@ function ScatterPanel() {
           <PluginRegistry
             pluginLoader={pluginLoader}
             defaultPluginKinds={{
-              Panel: 'TimeSeriesChart',
-              TimeSeriesQuery: 'PrometheusTimeSeriesQuery',
+                Panel: 'ScatterChart',
+                TimeSeriesQuery: 'PrometheusTimeSeriesQuery',
+                TraceQuery: 'TempoTraceQuery',
             }}
           >
             <QueryClientProvider client={queryClient}>
@@ -95,12 +106,24 @@ function ScatterPanel() {
                     <DataQueriesProvider
                       definitions={[
                         {
-                          kind: 'PrometheusTimeSeriesQuery',
-                          spec: { query: `up{job="prometheus"}` },
-                        },
+                            kind: 'TempoTraceQuery',
+                            spec: { query: value },
+                          },
                       ]}
                     >
-                      <TimeSeriesChart.PanelComponent
+                    <TimeSeriesChart.PanelComponent
+                        contentDimensions={{
+                          width: 0,
+                          height: 0,
+                        }}
+                        spec={{
+                          legend: {
+                            position: 'bottom',
+                            size: 'medium',
+                          },
+                        }}
+                      />
+                      <ScatterChart.PanelComponent
                         contentDimensions={{
                           width: 1200,
                           height: 400,
@@ -112,6 +135,21 @@ function ScatterPanel() {
                           },
                         }}
                       />
+                    <TextInput
+                        ref={ref}
+                        // value={value}
+                        type="text"
+                        // onChange={(_event, value) => setValue(value.currentTarget.value)}
+                        aria-label="text input example"
+                      />
+                      <Button
+                        variant="primary"
+                        onClick={() => {
+                          setValue(ref.current.value);
+                        }}
+                      >
+                        Submit
+                      </Button>
                     </DataQueriesProvider>
                   </DatasourceStoreProvider>
                 </TemplateVariableProvider>

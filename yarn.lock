@@ -965,6 +965,15 @@
     date-fns "^2.28.0"
     immer "^9.0.15"
 
+"@perses-dev/tempo-plugin@^0.44.0":
+  version "0.44.0"
+  resolved "https://registry.yarnpkg.com/@perses-dev/tempo-plugin/-/tempo-plugin-0.44.0.tgz#876a5c30882a4f4ac33523096917738e8d60a3ca"
+  integrity sha512-SyMLrgtBSH2ixFD0ycXU+/l3h6+P1B4ZCsyGRnz0jDErj0Wm8h/EAEpKQd9ohhMYzubiMBGt8xplwOrK2rCKIg==
+  dependencies:
+    "@perses-dev/components" "0.44.0"
+    "@perses-dev/core" "0.44.0"
+    "@perses-dev/plugin-system" "0.44.0"
+
 "@popperjs/core@^2.11.8":
   version "2.11.8"
   resolved "https://registry.yarnpkg.com/@popperjs/core/-/core-2.11.8.tgz#6b79032e760a0899cd4204710beede972a3a185f"

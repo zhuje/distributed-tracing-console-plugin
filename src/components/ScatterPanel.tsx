@@ -20,10 +20,14 @@ import { TextInput, Button } from '@patternfly/react-core';
 
 
 import { TableBasic } from './Table';
+import { EChartsTheme } from '@perses-dev/components';
+import { createTheme } from '@mui/material';
+import { PersesChartsTheme } from '@perses-dev/components';
 
 
 // for testing only 
 import { ScatterChartPanel } from './CloneScatterPlot/ScatterChartPanel';
+
 
 
 const fakeDatasource: GlobalDatasource = {
@@ -69,8 +73,41 @@ function ScatterPanel() {
     // Use ref to prevent reload on each key tap in TraceQL input box
    const ref = React.useRef<HTMLInputElement>(null);
 
+   const patternflyBlue300 = '#2b9af3'
+   const defaultPaletteColors = [        
+    "#FFCC00",
+   "#ed6c02",
+   "#d32f2f",
+  ]
+
+  //  const TEST_ECHARTS_THEME_OVERRIDES: EChartsTheme = {
+  //   thresholds: {
+  //     defaultColor: patternflyBlue300
+  //   }
+  // };
+
   const muiTheme = getTheme('light');
-  const chartsTheme = generateChartsTheme(muiTheme, {});
+  // const chartsTheme = generateChartsTheme(
+  //   muiTheme: createMuiTheme({}), 
+  //   persesChartsThemeOverride: {
+  //     thresholds: {
+  //       defaultColor: patternflyBlue300
+  //     }
+  //   }
+  // );
+
+  // const muiTheme = createTheme({});
+
+
+  const chartsTheme: PersesChartsTheme = generateChartsTheme(muiTheme, 
+    { 
+      thresholds : {
+        defaultColor: patternflyBlue300,
+        palette: defaultPaletteColors
+      } 
+    }
+    );
+
   const pluginLoader = dynamicImportPluginLoader([
     {
       resource: prometheusResource as PluginModuleResource,

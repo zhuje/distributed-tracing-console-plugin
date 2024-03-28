@@ -63,15 +63,10 @@ export function ScatterChartPanel(props: ScatterChartPanelProps) {
   const chartsTheme = useChartsTheme();
   const defaultColor = chartsTheme.thresholds.defaultColor || 'blue';
 
+  console.log('ScatterChartPanel chartTheme: ', chartsTheme)
+
 
   const hasData = traceResults.some((result) => result.data && result.data.traces.length > 0);
-
-  console.log('ScatterChaterPanel > traceQueryResults:', traceQueryResults)
-  console.log('ScatterChaterPanel > traceResult:', traceResults)
-  console.log('ScatterChaterPanel > hasData:', hasData)
-  console.log('ScatterChaterPanel > timeSeriesResults:', timesSeriesQueryResults)
-
-  
 
   if (!hasData){
     return (

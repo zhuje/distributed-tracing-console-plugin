@@ -11,7 +11,7 @@ import { TempoStackDropdown } from './TempoStackDropdown';
 import { useURLState } from '../hooks/useURLState';
 import { useTempoStack } from '../hooks/useTempoStack';
 import { useTranslation } from 'react-i18next';
-import ScatterPanel from './ScatterPanel';
+import QueryBrowser from './QueryBrowser';
 
 import './example.css';
 
@@ -59,7 +59,7 @@ export default function TracingPage() {
             </TextContent>
           )}
 
-          <ScatterPanel />
+          <QueryBrowser />
 
         </PageSection>
       </Page>

@@ -68,37 +68,22 @@ class DatasourceApiImpl implements DatasourceApi {
 export const fakeDatasourceApi = new DatasourceApiImpl();
 export const fakeDashboard = { kind: 'Dashboard', metadata: {}, spec: {} } as DashboardResource;
 
-function ScatterPanel() {
+function QueryBrowser() {
    const [value, setValue] = React.useState('{}');
     // Use ref to prevent reload on each key tap in TraceQL input box
    const ref = React.useRef<HTMLInputElement>(null);
 
    const patternflyBlue300 = '#2b9af3'
-   const defaultPaletteColors = [        
-    "#FFCC00",
-   "#ed6c02",
-   "#d32f2f",
-  ]
-
-  //  const TEST_ECHARTS_THEME_OVERRIDES: EChartsTheme = {
-  //   thresholds: {
-  //     defaultColor: patternflyBlue300
-  //   }
-  // };
+   const patternflyBlue400 = '#0066cc'
+   const patternflyBlue500 = '#004080'
+   const patternflyBlue600 = '#002952'
+   const defaultPaletteColors = [
+    patternflyBlue400,
+    patternflyBlue500,
+    patternflyBlue600
+   ]
 
   const muiTheme = getTheme('light');
-  // const chartsTheme = generateChartsTheme(
-  //   muiTheme: createMuiTheme({}), 
-  //   persesChartsThemeOverride: {
-  //     thresholds: {
-  //       defaultColor: patternflyBlue300
-  //     }
-  //   }
-  // );
-
-  // const muiTheme = createTheme({});
-
-
   const chartsTheme: PersesChartsTheme = generateChartsTheme(muiTheme, 
     { 
       thresholds : {
@@ -196,4 +181,4 @@ function ScatterPanel() {
 }
 
 
-export default ScatterPanel;
+export default QueryBrowser;

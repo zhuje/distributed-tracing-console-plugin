@@ -1,5 +1,14 @@
 import React from 'react';
-import { Table, Thead, Tr, Th, Tbody, Td } from '@patternfly/react-table';
+import { 
+  Table, 
+  Thead, 
+  Tr, 
+  Th, 
+  Tbody, 
+  Td, 
+  TableVariant, 
+  TableGridBreakpoint,  
+} from '@patternfly/react-table';
 import { useDataQueries } from '@perses-dev/plugin-system';
 import {
   Title,
@@ -82,17 +91,18 @@ export const TableBasic: React.FunctionComponent = () => {
   return (
 
       <Table
-        aria-label="Simple table"
-        variant={exampleChoice !== 'default' ? 'compact' : undefined}
-        borders={exampleChoice !== 'compactBorderless'}
+        aria-label="traces query result table"
+        variant={TableVariant.compact}
+        gridBreakPoint={TableGridBreakpoint.none}
+        borders={true}
       >
         <Thead>
           <Tr>
-            <Th>{columnNames.traceId}</Th>
-            <Th>{columnNames.durationMs}</Th>
-            <Th>{columnNames.spanCount}</Th>
-            <Th>{columnNames.errorCount}</Th>
-            <Th>{columnNames.startTime}</Th>
+            <Th modifier="wrap" >{columnNames.traceId}</Th>
+            <Th modifier="wrap">{columnNames.durationMs}</Th>
+            <Th modifier="wrap">{columnNames.spanCount}</Th>
+            <Th modifier="wrap">{columnNames.errorCount}</Th>
+            <Th modifier="wrap">{columnNames.startTime}</Th>
           </Tr>
         </Thead>
         <Tbody>

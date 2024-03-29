@@ -1,23 +1,40 @@
 import React, { useEffect } from 'react';
 
-import { BarChart, ChartsProvider, generateChartsTheme, getTheme, SnackbarProvider } from "@perses-dev/components";
+import {
+  BarChart,
+  ChartsProvider,
+  generateChartsTheme,
+  getTheme,
+  SnackbarProvider,
+} from '@perses-dev/components';
 import {
   DataQueriesProvider,
-  dynamicImportPluginLoader, PluginModuleResource,
+  dynamicImportPluginLoader,
+  PluginModuleResource,
   PluginRegistry,
-  TimeRangeProvider
-} from "@perses-dev/plugin-system";
-import { TimeSeriesChart, ScatterChart, StatChart } from '@perses-dev/panels-plugin';
-import { makeStyles, ThemeProvider } from "@mui/material";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { DatasourceStoreProvider, TemplateVariableProvider } from "@perses-dev/dashboards";
+  TimeRangeProvider,
+} from '@perses-dev/plugin-system';
+import {
+  TimeSeriesChart,
+  ScatterChart,
+  StatChart,
+} from '@perses-dev/panels-plugin';
+import { makeStyles, ThemeProvider } from '@mui/material';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import {
+  DatasourceStoreProvider,
+  TemplateVariableProvider,
+} from '@perses-dev/dashboards';
 import prometheusResource from '@perses-dev/prometheus-plugin/plugin.json';
 import panelsResource from '@perses-dev/panels-plugin/plugin.json';
-import { DashboardResource, GlobalDatasource, ProjectDatasource } from '@perses-dev/core';
+import {
+  DashboardResource,
+  GlobalDatasource,
+  ProjectDatasource,
+} from '@perses-dev/core';
 import { DatasourceApi } from '@perses-dev/dashboards';
 import tempoResource from '@perses-dev/tempo-plugin/plugin.json';
 import { TextInput, Button } from '@patternfly/react-core';
-
 
 import { TableBasic } from './Table';
 import { EChartsTheme } from '@perses-dev/components';
@@ -25,28 +42,23 @@ import { createTheme } from '@mui/material';
 import { PersesChartsTheme } from '@perses-dev/components';
 import { Stack, StackItem } from '@patternfly/react-core';
 import './QueryBrowser.css';
- 
 
-
-
-// for testing only 
+// for testing only
 import { ScatterChartPanel } from './CloneScatterPlot/ScatterChartPanel';
 
-
-
 const fakeDatasource: GlobalDatasource = {
-    kind: 'GlobalDatasource',
-    metadata: { name: 'hello' },
-    spec: {
-      default: true,
-      plugin: {
-        kind: 'TempoDatasource',
-        spec: {
-          directUrl: "/api/proxy/plugin/distributed-tracing-plugin/backend"
-        },
+  kind: 'GlobalDatasource',
+  metadata: { name: 'hello' },
+  spec: {
+    default: true,
+    plugin: {
+      kind: 'TempoDatasource',
+      spec: {
+        directUrl: '/api/proxy/plugin/distributed-tracing-plugin/backend',
       },
     },
-  };
+  },
+};
 
 class DatasourceApiImpl implements DatasourceApi {
   getDatasource(): Promise<ProjectDatasource | undefined> {
@@ -70,32 +82,34 @@ class DatasourceApiImpl implements DatasourceApi {
   }
 }
 export const fakeDatasourceApi = new DatasourceApiImpl();
-export const fakeDashboard = { kind: 'Dashboard', metadata: {}, spec: {} } as DashboardResource;
+export const fakeDashboard = {
+  kind: 'Dashboard',
+  metadata: {},
+  spec: {},
+} as DashboardResource;
 
 function QueryBrowser() {
-   const [value, setValue] = React.useState('{}');
-    // Use ref to prevent reload on each key tap in TraceQL input box
-   const ref = React.useRef<HTMLInputElement>(null);
+  const [value, setValue] = React.useState('{}');
+  // Use ref to prevent reload on each key tap in TraceQL input box
+  const ref = React.useRef<HTMLInputElement>(null);
 
-   const patternflyBlue300 = '#2b9af3'
-   const patternflyBlue400 = '#0066cc'
-   const patternflyBlue500 = '#004080'
-   const patternflyBlue600 = '#002952'
-   const defaultPaletteColors = [
+  const patternflyBlue300 = '#2b9af3';
+  const patternflyBlue400 = '#0066cc';
+  const patternflyBlue500 = '#004080';
+  const patternflyBlue600 = '#002952';
+  const defaultPaletteColors = [
     patternflyBlue400,
     patternflyBlue500,
-    patternflyBlue600
-   ]
+    patternflyBlue600,
+  ];
 
   const muiTheme = getTheme('light');
-  const chartsTheme: PersesChartsTheme = generateChartsTheme(muiTheme, 
-    { 
-      thresholds : {
-        defaultColor: patternflyBlue300,
-        palette: defaultPaletteColors
-      } 
-    }
-    );
+  const chartsTheme: PersesChartsTheme = generateChartsTheme(muiTheme, {
+    thresholds: {
+      defaultColor: patternflyBlue300,
+      palette: defaultPaletteColors,
+    },
+  });
 
   const pluginLoader = dynamicImportPluginLoader([
     {
@@ -107,9 +121,9 @@ function QueryBrowser() {
       importPlugin: () => import('@perses-dev/panels-plugin'),
     },
     {
-        resource: tempoResource as PluginModuleResource,
-        importPlugin: () => import('@perses-dev/tempo-plugin'),
-      },
+      resource: tempoResource as PluginModuleResource,
+      importPlugin: () => import('@perses-dev/tempo-plugin'),
+    },
   ]);
 
   const queryClient = new QueryClient({
@@ -154,46 +168,44 @@ function QueryBrowser() {
                         },
                       ]}
                     >
-                    <Stack hasGutter>
-                      <StackItem >
-                      <ScatterChartPanel
-                        contentDimensions={{
-                          width: 1100,
-                          height: 400,
-                        }}
-                        spec={{
-                          legend: {
-                            position: 'bottom',
-                            size: 'medium',
-                          },
-                        }}
-                      />
-                      </StackItem>
-                     <StackItem>
-                     <TextInput
-                        ref={ref}
-                        // value={value}
-                        type="text"
-                        // onChange={(_event, value) => setValue(value.currentTarget.value)}
-                        aria-label="traces query input"
-                      />
-                      <Button
-                        className="query-browser-input"
-                        variant="primary"
-                        onClick={() => {
-                          setValue(ref.current.value);
-                        }}
-                      >
-                        Run Query
-                      </Button>
-                     </StackItem>
-   
-                        <StackItem>
-                        <TableBasic />
+                      <Stack hasGutter>
+                        <StackItem
+                          className='query-browser-stack'
+                        >
+                          <ScatterChartPanel
+                            contentDimensions={{
+                              width: 1100,
+                              height: 400,
+                            }}
+                            spec={{
+                              legend: {
+                                position: 'bottom',
+                                size: 'medium',
+                              },
+                            }}
+                          />
                         </StackItem>
-
-
-
+                        <StackItem>
+                          <TextInput
+                            ref={ref}
+                            // value={value}
+                            type="text"
+                            // onChange={(_event, value) => setValue(value.currentTarget.value)}
+                            aria-label="traces query input"
+                          />
+                          <Button
+                            className="query-browser-input"
+                            variant="primary"
+                            onClick={() => {
+                              setValue(ref.current.value);
+                            }}
+                          >
+                            Run Query
+                          </Button>
+                        </StackItem>
+                        <StackItem>
+                          <TableBasic />
+                        </StackItem>
                       </Stack>
                     </DataQueriesProvider>
                   </DatasourceStoreProvider>
@@ -206,6 +218,5 @@ function QueryBrowser() {
     </ThemeProvider>
   );
 }
-
 
 export default QueryBrowser;

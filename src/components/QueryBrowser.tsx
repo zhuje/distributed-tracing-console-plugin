@@ -23,6 +23,10 @@ import { TableBasic } from './Table';
 import { EChartsTheme } from '@perses-dev/components';
 import { createTheme } from '@mui/material';
 import { PersesChartsTheme } from '@perses-dev/components';
+import { Stack, StackItem } from '@patternfly/react-core';
+import './QueryBrowser.css';
+ 
+
 
 
 // for testing only 
@@ -119,40 +123,54 @@ function QueryBrowser() {
   return (
     <ThemeProvider theme={muiTheme}>
       <ChartsProvider chartsTheme={chartsTheme}>
-        <SnackbarProvider anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }} variant="default" content="">
+        <SnackbarProvider
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+          variant="default"
+          content=""
+        >
           <PluginRegistry
             pluginLoader={pluginLoader}
             defaultPluginKinds={{
-                Panel: 'ScatterChart',
-                TimeSeriesQuery: 'PrometheusTimeSeriesQuery',
-                TraceQuery: 'TempoTraceQuery',
+              Panel: 'ScatterChart',
+              TimeSeriesQuery: 'PrometheusTimeSeriesQuery',
+              TraceQuery: 'TempoTraceQuery',
             }}
           >
             <QueryClientProvider client={queryClient}>
-              <TimeRangeProvider refreshInterval="0s" timeRange={{ pastDuration: '30m' }}>
+              <TimeRangeProvider
+                refreshInterval="0s"
+                timeRange={{ pastDuration: '30m' }}
+              >
                 <TemplateVariableProvider>
-                  <DatasourceStoreProvider dashboardResource={fakeDashboard} datasourceApi={fakeDatasourceApi}>
+                  <DatasourceStoreProvider
+                    dashboardResource={fakeDashboard}
+                    datasourceApi={fakeDatasourceApi}
+                  >
                     <DataQueriesProvider
                       definitions={[
                         {
-                            kind: 'TempoTraceQuery',
-                            spec: { query: value },
+                          kind: 'TempoTraceQuery',
+                          spec: { query: value },
                         },
                       ]}
                     >
-                    <ScatterChartPanel
+                    <Stack hasGutter>
+                      <StackItem >
+                      <ScatterChartPanel
                         contentDimensions={{
-                        width: 1000,
-                        height: 400,
+                          width: 1100,
+                          height: 400,
                         }}
                         spec={{
-                        legend: {
+                          legend: {
                             position: 'bottom',
                             size: 'medium',
-                        },
+                          },
                         }}
-                    />
-                    <TextInput
+                      />
+                      </StackItem>
+                     <StackItem>
+                     <TextInput
                         ref={ref}
                         // value={value}
                         type="text"
@@ -160,6 +178,7 @@ function QueryBrowser() {
                         aria-label="traces query input"
                       />
                       <Button
+                        className="query-browser-input"
                         variant="primary"
                         onClick={() => {
                           setValue(ref.current.value);
@@ -167,7 +186,15 @@ function QueryBrowser() {
                       >
                         Run Query
                       </Button>
-                      <TableBasic />
+                     </StackItem>
+   
+                        <StackItem>
+                        <TableBasic />
+                        </StackItem>
+
+
+
+                      </Stack>
                     </DataQueriesProvider>
                   </DatasourceStoreProvider>
                 </TemplateVariableProvider>

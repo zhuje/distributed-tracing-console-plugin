@@ -157,7 +157,7 @@ function QueryBrowser() {
                         // value={value}
                         type="text"
                         // onChange={(_event, value) => setValue(value.currentTarget.value)}
-                        aria-label="text input example"
+                        aria-label="traces query input"
                       />
                       <Button
                         variant="primary"

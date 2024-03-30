@@ -1,7 +1,6 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 
 import {
-  BarChart,
   ChartsProvider,
   generateChartsTheme,
   getTheme,
@@ -14,12 +13,7 @@ import {
   PluginRegistry,
   TimeRangeProvider,
 } from '@perses-dev/plugin-system';
-import {
-  TimeSeriesChart,
-  ScatterChart,
-  StatChart,
-} from '@perses-dev/panels-plugin';
-import { makeStyles, ThemeProvider } from '@mui/material';
+import { ThemeProvider } from '@mui/material';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import {
   DatasourceStoreProvider,
@@ -37,8 +31,6 @@ import tempoResource from '@perses-dev/tempo-plugin/plugin.json';
 import { TextInput, Button } from '@patternfly/react-core';
 
 import { TableBasic } from './Table';
-import { EChartsTheme } from '@perses-dev/components';
-import { createTheme } from '@mui/material';
 import { PersesChartsTheme } from '@perses-dev/components';
 import { Stack, StackItem } from '@patternfly/react-core';
 import './QueryBrowser.css';
@@ -46,9 +38,9 @@ import './QueryBrowser.css';
 // for testing only
 import { ScatterChartPanel } from './CloneScatterPlot/ScatterChartPanel';
 
-const fakeDatasource: GlobalDatasource = {
+const proxyDatasource: GlobalDatasource = {
   kind: 'GlobalDatasource',
-  metadata: { name: 'hello' },
+  metadata: { name: 'TempoProxy' },
   spec: {
     default: true,
     plugin: {
@@ -64,25 +56,21 @@ class DatasourceApiImpl implements DatasourceApi {
   getDatasource(): Promise<ProjectDatasource | undefined> {
     return Promise.resolve(undefined);
   }
-
   getGlobalDatasource(): Promise<GlobalDatasource | undefined> {
-    return Promise.resolve(fakeDatasource);
+    return Promise.resolve(proxyDatasource);
   }
-
   listDatasources(): Promise<ProjectDatasource[]> {
     return Promise.resolve([]);
   }
-
   listGlobalDatasources(): Promise<GlobalDatasource[]> {
-    return Promise.resolve([fakeDatasource]);
+    return Promise.resolve([proxyDatasource]);
   }
-
   buildProxyUrl(): string {
     return '/';
   }
 }
-export const fakeDatasourceApi = new DatasourceApiImpl();
-export const fakeDashboard = {
+export const datasourceApi = new DatasourceApiImpl();
+export const dashboard = {
   kind: 'Dashboard',
   metadata: {},
   spec: {},
@@ -102,7 +90,6 @@ function QueryBrowser() {
     patternflyBlue500,
     patternflyBlue600,
   ];
-
   const muiTheme = getTheme('light');
   const chartsTheme: PersesChartsTheme = generateChartsTheme(muiTheme, {
     thresholds: {
@@ -134,6 +121,7 @@ function QueryBrowser() {
       },
     },
   });
+
   return (
     <ThemeProvider theme={muiTheme}>
       <ChartsProvider chartsTheme={chartsTheme}>
@@ -157,8 +145,8 @@ function QueryBrowser() {
               >
                 <TemplateVariableProvider>
                   <DatasourceStoreProvider
-                    dashboardResource={fakeDashboard}
-                    datasourceApi={fakeDatasourceApi}
+                    dashboardResource={dashboard}
+                    datasourceApi={datasourceApi}
                   >
                     <DataQueriesProvider
                       definitions={[
@@ -187,13 +175,12 @@ function QueryBrowser() {
                         </StackItem>
                         <StackItem>
                           <TextInput
+                            aria-label="trace query input"
                             ref={ref}
-                            // value={value}
                             type="text"
-                            // onChange={(_event, value) => setValue(value.currentTarget.value)}
-                            aria-label="traces query input"
                           />
                           <Button
+                            aria-label="trace query button"
                             className="query-browser-input"
                             variant="primary"
                             onClick={() => {

@@ -20,10 +20,6 @@ import {
 } from '@patternfly/react-core';
 import CubesIcon from '@patternfly/react-icons/dist/esm/icons/cubes-icon';
 
-type ExampleType = 'default' | 'compact' | 'compactBorderless';
-
-
-
 const EmptyTable = () => (
   <EmptyState>
     <EmptyStateIcon icon={CubesIcon} />
@@ -56,10 +52,6 @@ const LoadingTable = () => (
   </svg>
 );
     
-
-
-
-
 export const TableBasic: React.FunctionComponent = () => {
   // Get trace data from Perses's DataQueriesProvider 
   const traceData = useDataQueries('TraceQuery');
@@ -85,11 +77,7 @@ export const TableBasic: React.FunctionComponent = () => {
     startTime: 'Start time'
   };
 
-  // This state is just for the ToggleGroup in this example and isn't necessary for Table usage.
-  const [exampleChoice, setExampleChoice] = React.useState<ExampleType>('default');
-
   return (
-
       <Table
         aria-label="traces query result table"
         variant={TableVariant.compact}

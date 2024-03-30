@@ -12,11 +12,9 @@ import {
 import { useDataQueries } from '@perses-dev/plugin-system';
 import {
   Title,
-  Button,
   EmptyState,
   EmptyStateIcon,
   EmptyStateBody,
-  EmptyStateSecondaryActions
 } from '@patternfly/react-core';
 import CubesIcon from '@patternfly/react-icons/dist/esm/icons/cubes-icon';
 
@@ -27,18 +25,8 @@ const EmptyTable = () => (
       Empty state
     </Title>
     <EmptyStateBody>
-      This represents an the empty state pattern in Patternfly 4. Hopefully it's simple enough to use but flexible
-      enough to meet a variety of needs.
+      No Data 
     </EmptyStateBody>
-    <Button variant="primary">Primary action</Button>
-    <EmptyStateSecondaryActions>
-      <Button variant="link">Multiple</Button>
-      <Button variant="link">Action Buttons</Button>
-      <Button variant="link">Can</Button>
-      <Button variant="link">Go here</Button>
-      <Button variant="link">In the secondary</Button>
-      <Button variant="link">Action area</Button>
-    </EmptyStateSecondaryActions>
   </EmptyState>
 )
 const LoadingTable = () => (
@@ -52,10 +40,9 @@ const LoadingTable = () => (
   </svg>
 );
     
-export const TableBasic: React.FunctionComponent = () => {
+export const TraceTable: React.FunctionComponent = () => {
   // Get trace data from Perses's DataQueriesProvider 
   const traceData = useDataQueries('TraceQuery');
-  console.log('Table > traceData : ', traceData);
   
   if (!traceData?.isLoading && traceData?.queryResults?.length < 1 ) {
     return <EmptyTable /> 

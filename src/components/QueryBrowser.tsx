@@ -19,7 +19,6 @@ import {
   DatasourceStoreProvider,
   TemplateVariableProvider,
 } from '@perses-dev/dashboards';
-import prometheusResource from '@perses-dev/prometheus-plugin/plugin.json';
 import panelsResource from '@perses-dev/panels-plugin/plugin.json';
 import {
   DashboardResource,
@@ -30,7 +29,7 @@ import { DatasourceApi } from '@perses-dev/dashboards';
 import tempoResource from '@perses-dev/tempo-plugin/plugin.json';
 import { TextInput, Button } from '@patternfly/react-core';
 
-import { TableBasic } from './Table';
+import { TraceTable } from './Table';
 import { PersesChartsTheme } from '@perses-dev/components';
 import { Stack, StackItem } from '@patternfly/react-core';
 import './QueryBrowser.css';
@@ -78,9 +77,11 @@ export const dashboard = {
 
 function QueryBrowser() {
   const [value, setValue] = React.useState('{}');
+  
   // Use ref to prevent reload on each key tap in TraceQL input box
   const ref = React.useRef<HTMLInputElement>(null);
 
+  // Override eChart defaults 
   const patternflyBlue300 = '#2b9af3';
   const patternflyBlue400 = '#0066cc';
   const patternflyBlue500 = '#004080';
@@ -98,11 +99,8 @@ function QueryBrowser() {
     },
   });
 
+  // Perses provider configurations
   const pluginLoader = dynamicImportPluginLoader([
-    {
-      resource: prometheusResource as PluginModuleResource,
-      importPlugin: () => import('@perses-dev/prometheus-plugin'),
-    },
     {
       resource: panelsResource as PluginModuleResource,
       importPlugin: () => import('@perses-dev/panels-plugin'),
@@ -112,7 +110,6 @@ function QueryBrowser() {
       importPlugin: () => import('@perses-dev/tempo-plugin'),
     },
   ]);
-
   const queryClient = new QueryClient({
     defaultOptions: {
       queries: {
@@ -157,9 +154,7 @@ function QueryBrowser() {
                       ]}
                     >
                       <Stack hasGutter>
-                        <StackItem
-                          className='query-browser-stack'
-                        >
+                        <StackItem className="query-browser-stack">
                           <ScatterChartPanel
                             contentDimensions={{
                               width: 1100,
@@ -174,24 +169,30 @@ function QueryBrowser() {
                           />
                         </StackItem>
                         <StackItem>
-                          <TextInput
-                            aria-label="trace query input"
-                            ref={ref}
-                            type="text"
-                          />
-                          <Button
-                            aria-label="trace query button"
-                            className="query-browser-input"
-                            variant="primary"
-                            onClick={() => {
-                              setValue(ref.current.value);
-                            }}
-                          >
-                            Run Query
-                          </Button>
+                          <div className="pf-v5-l-grid">
+                            <div className="pf-v5-l-grid__item pf-m-10-col">
+                              <TextInput
+                                aria-label="trace query input"
+                                ref={ref}
+                                type="text"
+                              />
+                            </div>
+                            <div className="pf-v5-l-grid__item pf-m-2-col">
+                              <Button
+                                aria-label="trace query button"
+                                className="query-browser-input-button"
+                                variant="primary"
+                                onClick={() => {
+                                  setValue(ref.current.value);
+                                }}
+                              >
+                                Run Query
+                              </Button>
+                            </div>
+                          </div>
                         </StackItem>
                         <StackItem>
-                          <TableBasic />
+                          <TraceTable />
                         </StackItem>
                       </Stack>
                     </DataQueriesProvider>

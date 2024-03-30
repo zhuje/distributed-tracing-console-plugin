@@ -45,23 +45,23 @@ export function Scatterplot(props: ScatterplotProps) {
     xAxis: {
       type: 'time',
       name: 'Local Time',
-      nameGap: 25,
-      nameTextStyle: {
-        fontWeight: 'bold',
-        verticalAlign: 'top',
-        padding: [14, 0, 0, 0],
-      },
+      // nameGap: 25,
+      // nameTextStyle: {
+      //   fontWeight: 'bold',
+      //   verticalAlign: 'top',
+      //   padding: [14, 0, 0, 0],
+      // },
     },
     yAxis: {
       scale: true,
       type: 'value',
       name: 'Duration',
-      nameGap: 25,
-      nameTextStyle: {
-        fontWeight: 'bold',
-        align: 'right',
-        padding: [0, 11, 0, 0],
-      },
+      // nameGap: 25,
+      // nameTextStyle: {
+      //   fontWeight: 'bold',
+      //   align: 'right',
+      //   padding: [0, 11, 0, 0],
+      // },
       axisLabel: {
         formatter: '{value} ms',
       },

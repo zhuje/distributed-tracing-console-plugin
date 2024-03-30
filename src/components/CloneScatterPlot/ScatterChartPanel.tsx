@@ -68,11 +68,11 @@ export function ScatterChartPanel(props: ScatterChartPanelProps) {
 
   const hasData = traceResults.some((result) => result.data && result.data.traces.length > 0);
 
-  if (!hasData){
-    return (
-        <h1> NO DATA</h1> 
-    )
-  }
+  // if (!hasData){
+  //   return (
+  //       <h1> NO DATA</h1> 
+  //   )
+  // }
 
   // Generate dataset
   // Transform Tempo API response to fit 'dataset' structure from Apache ECharts

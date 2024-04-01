@@ -906,15 +906,15 @@
   resolved "https://registry.yarnpkg.com/@patternfly/react-tokens/-/react-tokens-5.2.1.tgz#fca7decaa7039dcd93fd215f3f533eff9d070b22"
   integrity sha512-8GYz/jnJTGAWUJt5eRAW5dtyiHPKETeFJBPGHaUQnvi/t1ZAkoy8i4Kd/RlHsDC7ktiu813SKCmlzwBwldAHKg==
 
-"@perses-dev/components@0.44.0", "@perses-dev/components@^0.44.0":
-  version "0.44.0"
-  resolved "https://registry.yarnpkg.com/@perses-dev/components/-/components-0.44.0.tgz#61f19e4f461b5a4e775c24f9593d6d0551e230e6"
-  integrity sha512-3gL1REMEfsV7e+f7wTkwxoc4+VsZHmY4hsex+81ko0UKKUoCn3V0nwnqVL63z3Jwh/NgUEWJO6hhlItkIHmglA==
+"@perses-dev/components@0.0.0-snapshot-scatterplot-fix-imports-95e1b59":
+  version "0.0.0-snapshot-scatterplot-fix-imports-95e1b59"
+  resolved "https://registry.yarnpkg.com/@perses-dev/components/-/components-0.0.0-snapshot-scatterplot-fix-imports-95e1b59.tgz#63a52196f10c595e9919acba7e87830751cdac55"
+  integrity sha512-xUfm2Nll8JswNnEU17fG3v62jN66iJD701kMl1xGlVIry3oU6TkxuZsNdKDFoyYLi+DYiT0f+tFsKrHQFo8ICg==
   dependencies:
     "@codemirror/lang-json" "^6.0.1"
     "@fontsource/lato" "^4.5.10"
     "@mui/x-date-pickers" "^6.12.1"
-    "@perses-dev/core" "0.44.0"
+    "@perses-dev/core" "0.0.0-snapshot-scatterplot-fix-imports-95e1b59"
     "@tanstack/react-table" "^8.9.1"
     "@uiw/react-codemirror" "^4.19.1"
     date-fns "^2.28.0"
@@ -928,10 +928,10 @@
     react-error-boundary "^3.1.4"
     react-virtuoso "^4.3.6"
 
-"@perses-dev/core@0.44.0":
-  version "0.44.0"
-  resolved "https://registry.yarnpkg.com/@perses-dev/core/-/core-0.44.0.tgz#d36331bcf5ec652c1c7fea53acd698944b08a3c2"
-  integrity sha512-enKbPs+y+aHJztlMMH5WRDV+JvxmNfyTvkAfH94eoMrIBkJW7TqIHFkOskILULQP4+ZbuBtRmaMH67mTzJPz1g==
+"@perses-dev/core@0.0.0-snapshot-scatterplot-fix-imports-95e1b59":
+  version "0.0.0-snapshot-scatterplot-fix-imports-95e1b59"
+  resolved "https://registry.yarnpkg.com/@perses-dev/core/-/core-0.0.0-snapshot-scatterplot-fix-imports-95e1b59.tgz#12daac5d5cbed158cff5443730278da4a05cf4bf"
+  integrity sha512-jx+7oNFAVZIatZijr3BTKoV7PDdHHikWmunydwL28Q7T/a8HmwyoIESOcoK3if5zYeOX+zezUaLeyNEJLEw+dg==
   dependencies:
     date-fns "^2.28.0"
     lodash "^4.17.21"
@@ -939,14 +939,14 @@
     numbro "^2.3.6"
     zod "^3.21.4"
 
-"@perses-dev/dashboards@^0.44.0":
-  version "0.44.0"
-  resolved "https://registry.yarnpkg.com/@perses-dev/dashboards/-/dashboards-0.44.0.tgz#8dccf374f047f722258d3aa23cc30582f0c322f1"
-  integrity sha512-T/AvchF7/fymbFcV3aOPpfdyodVTbI68hZlHJDMWBj2to4I5XTV2w2tIWxfspgpLAmI0cSrmrBX353+ZLL/qZg==
+"@perses-dev/dashboards@0.0.0-snapshot-scatterplot-fix-imports-95e1b59":
+  version "0.0.0-snapshot-scatterplot-fix-imports-95e1b59"
+  resolved "https://registry.yarnpkg.com/@perses-dev/dashboards/-/dashboards-0.0.0-snapshot-scatterplot-fix-imports-95e1b59.tgz#8cb930432534403409aac91b802d7f367b6d56af"
+  integrity sha512-3QCI8BCg5IX0qVjEN9It+ZBKeBN6rT2mPurhReTKb6JyuYUq2vl6KUJWVqQoq4E7+V6mT5OutldSaJcdgcamew==
   dependencies:
-    "@perses-dev/components" "0.44.0"
-    "@perses-dev/core" "0.44.0"
-    "@perses-dev/plugin-system" "0.44.0"
+    "@perses-dev/components" "0.0.0-snapshot-scatterplot-fix-imports-95e1b59"
+    "@perses-dev/core" "0.0.0-snapshot-scatterplot-fix-imports-95e1b59"
+    "@perses-dev/plugin-system" "0.0.0-snapshot-scatterplot-fix-imports-95e1b59"
     "@types/react-grid-layout" "^1.3.2"
     date-fns "^2.28.0"
     immer "^9.0.15"
@@ -959,14 +959,14 @@
     use-resize-observer "^9.0.0"
     zustand "^4.3.3"
 
-"@perses-dev/panels-plugin@^0.44.0":
-  version "0.44.0"
-  resolved "https://registry.yarnpkg.com/@perses-dev/panels-plugin/-/panels-plugin-0.44.0.tgz#30102aaa36b3664199042ef633c81c832f110251"
-  integrity sha512-HJWsWM8aUvM1rDmH/Tz0glv+lxyZDcw/poq11Gu2PcihTZSaaFRzKWnHrty/SLUaDDe4TxN1RgCG3CIY4WNluw==
+"@perses-dev/panels-plugin@0.0.0-snapshot-scatterplot-fix-imports-95e1b59":
+  version "0.0.0-snapshot-scatterplot-fix-imports-95e1b59"
+  resolved "https://registry.yarnpkg.com/@perses-dev/panels-plugin/-/panels-plugin-0.0.0-snapshot-scatterplot-fix-imports-95e1b59.tgz#bf1042dd8a367c8a20e79ec148db63a5e74704c3"
+  integrity sha512-W5yEXZLvZCO/BvA7L0Lu1Vewn5QmCmlmsdz4VJpySfJsujhXGed9Bu14W1OFh4OvSN+sKcqKd/Df3v0q50Bz2w==
   dependencies:
-    "@perses-dev/components" "0.44.0"
-    "@perses-dev/core" "0.44.0"
-    "@perses-dev/plugin-system" "0.44.0"
+    "@perses-dev/components" "0.0.0-snapshot-scatterplot-fix-imports-95e1b59"
+    "@perses-dev/core" "0.0.0-snapshot-scatterplot-fix-imports-95e1b59"
+    "@perses-dev/plugin-system" "0.0.0-snapshot-scatterplot-fix-imports-95e1b59"
     color-hash "^2.0.2"
     date-fns "^2.28.0"
     dompurify "^2.4.0"
@@ -975,13 +975,13 @@
     lodash "^4.17.21"
     marked "^4.2.12"
 
-"@perses-dev/plugin-system@0.44.0", "@perses-dev/plugin-system@^0.44.0":
-  version "0.44.0"
-  resolved "https://registry.yarnpkg.com/@perses-dev/plugin-system/-/plugin-system-0.44.0.tgz#09ee16b2ab0a3046b44c3bfa2a313f219bef11fb"
-  integrity sha512-LRh4chQa9Rk9GqRSrKsI4jKDEh+MQEaNII4UArdV1vw2yP4WlRMb9H+5QEyb5wVeqZUwZ4GqVgircXirxylAyg==
+"@perses-dev/plugin-system@0.0.0-snapshot-scatterplot-fix-imports-95e1b59":
+  version "0.0.0-snapshot-scatterplot-fix-imports-95e1b59"
+  resolved "https://registry.yarnpkg.com/@perses-dev/plugin-system/-/plugin-system-0.0.0-snapshot-scatterplot-fix-imports-95e1b59.tgz#4dfef199d844e072fddf3621eceb285bdc6917c8"
+  integrity sha512-p+Y8lZwLWP7eqxOmQyRghAc7ni9gx1MYdiEFW7VLlm8XpklJO8nkcQfkFvHQIQXYRbindP/LGAOFmIczhysHtQ==
   dependencies:
-    "@perses-dev/components" "0.44.0"
-    "@perses-dev/core" "0.44.0"
+    "@perses-dev/components" "0.0.0-snapshot-scatterplot-fix-imports-95e1b59"
+    "@perses-dev/core" "0.0.0-snapshot-scatterplot-fix-imports-95e1b59"
     date-fns "^2.30.0"
     immer "^9.0.15"
     react-hook-form "^7.46.1"
@@ -989,29 +989,29 @@
     use-query-params "^2.1.2"
     zod "^3.22.2"
 
-"@perses-dev/prometheus-plugin@^0.44.0":
-  version "0.44.0"
-  resolved "https://registry.yarnpkg.com/@perses-dev/prometheus-plugin/-/prometheus-plugin-0.44.0.tgz#d59dee0f68d2d2397b02e4c049001b75d0be6b3c"
-  integrity sha512-KBQpSHnUn0xoP2SEK94EajJLj1GRdcUBSHlrlWg0Xjs9+NQTpVWZxZAgmfw63NnlXrf9DwMXaJbF2cxpdJOVlg==
+"@perses-dev/prometheus-plugin@0.0.0-snapshot-scatterplot-fix-imports-95e1b59":
+  version "0.0.0-snapshot-scatterplot-fix-imports-95e1b59"
+  resolved "https://registry.yarnpkg.com/@perses-dev/prometheus-plugin/-/prometheus-plugin-0.0.0-snapshot-scatterplot-fix-imports-95e1b59.tgz#20a714d4d04dd370246e535881aeee267946de24"
+  integrity sha512-VM0ZjIgrUryUC36RjiJMGJots9BlOKH6yuQMpcJ9xayYhuoBc2Zr5AgNj5HzhRVFMANPXIO4gHt1cpGlywkdPA==
   dependencies:
     "@lezer/highlight" "^1.0.0"
     "@lezer/lr" "^1.2.0"
-    "@perses-dev/components" "0.44.0"
-    "@perses-dev/core" "0.44.0"
-    "@perses-dev/plugin-system" "0.44.0"
+    "@perses-dev/components" "0.0.0-snapshot-scatterplot-fix-imports-95e1b59"
+    "@perses-dev/core" "0.0.0-snapshot-scatterplot-fix-imports-95e1b59"
+    "@perses-dev/plugin-system" "0.0.0-snapshot-scatterplot-fix-imports-95e1b59"
     "@prometheus-io/codemirror-promql" "^0.43.0"
     "@uiw/react-codemirror" "^4.19.1"
     date-fns "^2.28.0"
     immer "^9.0.15"
 
-"@perses-dev/tempo-plugin@^0.44.0":
-  version "0.44.0"
-  resolved "https://registry.yarnpkg.com/@perses-dev/tempo-plugin/-/tempo-plugin-0.44.0.tgz#876a5c30882a4f4ac33523096917738e8d60a3ca"
-  integrity sha512-SyMLrgtBSH2ixFD0ycXU+/l3h6+P1B4ZCsyGRnz0jDErj0Wm8h/EAEpKQd9ohhMYzubiMBGt8xplwOrK2rCKIg==
+"@perses-dev/tempo-plugin@0.0.0-snapshot-scatterplot-fix-imports-95e1b59":
+  version "0.0.0-snapshot-scatterplot-fix-imports-95e1b59"
+  resolved "https://registry.yarnpkg.com/@perses-dev/tempo-plugin/-/tempo-plugin-0.0.0-snapshot-scatterplot-fix-imports-95e1b59.tgz#639c3cbb6789a5af057fad9b5ee4a9dcf7fa2426"
+  integrity sha512-ND0mCAZxlNM+HLwgjICfSne6hvqjy2N2Z2EWkznule7JxT5zTrmamirQaVkU4lu1m1rSYzY8JOuCX2rwa2LZ5w==
   dependencies:
-    "@perses-dev/components" "0.44.0"
-    "@perses-dev/core" "0.44.0"
-    "@perses-dev/plugin-system" "0.44.0"
+    "@perses-dev/components" "0.0.0-snapshot-scatterplot-fix-imports-95e1b59"
+    "@perses-dev/core" "0.0.0-snapshot-scatterplot-fix-imports-95e1b59"
+    "@perses-dev/plugin-system" "0.0.0-snapshot-scatterplot-fix-imports-95e1b59"
 
 "@popperjs/core@^2.11.8":
   version "2.11.8"

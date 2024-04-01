@@ -35,7 +35,7 @@ import { Stack, StackItem } from '@patternfly/react-core';
 import './QueryBrowser.css';
 
 // for testing only
-import { ScatterChartPanel } from './CloneScatterPlot/ScatterChartPanel';
+import { ScatterChart } from '@perses-dev/panels-plugin';
 
 const proxyDatasource: GlobalDatasource = {
   kind: 'GlobalDatasource',
@@ -155,7 +155,7 @@ function QueryBrowser() {
                     >
                       <Stack hasGutter>
                         <StackItem className="query-browser-stack">
-                          <ScatterChartPanel
+                          <ScatterChart.PanelComponent
                             contentDimensions={{
                               width: 1100,
                               height: 400,
@@ -166,8 +166,8 @@ function QueryBrowser() {
                                 size: 'medium',
                               },
                             }}
-                          />
-                        </StackItem>
+                            />
+                          </StackItem>
                         <StackItem>
                           <div className="pf-v5-l-grid">
                             <div className="pf-v5-l-grid__item pf-m-10-col">

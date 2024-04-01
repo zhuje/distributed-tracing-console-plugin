@@ -58,9 +58,7 @@ export default function TracingPage() {
               </Text>
             </TextContent>
           )}
-
           <QueryBrowser />
-
         </PageSection>
       </Page>
     </>

@@ -28,15 +28,15 @@ import {
 import { DatasourceApi } from '@perses-dev/dashboards';
 import tempoResource from '@perses-dev/tempo-plugin/plugin.json';
 import { TextInput, Button } from '@patternfly/react-core';
-
 import { TraceTable } from './Table';
 import { PersesChartsTheme } from '@perses-dev/components';
 import { Stack, StackItem } from '@patternfly/react-core';
 import './QueryBrowser.css';
-
-// for testing only
 import { ScatterChart } from '@perses-dev/panels-plugin';
 
+// To configure a different endpoint for your Tempo instance
+// you need to modify the env variable 'BRIDGE_PLUGIN_PROXY'
+// in the start-console.sh script.
 const proxyDatasource: GlobalDatasource = {
   kind: 'GlobalDatasource',
   metadata: { name: 'TempoProxy' },
@@ -50,7 +50,6 @@ const proxyDatasource: GlobalDatasource = {
     },
   },
 };
-
 class DatasourceApiImpl implements DatasourceApi {
   getDatasource(): Promise<ProjectDatasource | undefined> {
     return Promise.resolve(undefined);
@@ -69,55 +68,59 @@ class DatasourceApiImpl implements DatasourceApi {
   }
 }
 export const datasourceApi = new DatasourceApiImpl();
+
 export const dashboard = {
   kind: 'Dashboard',
   metadata: {},
   spec: {},
 } as DashboardResource;
 
+// Override eChart defaults with PatternFly colors.
+const patternflyBlue300 = '#2b9af3';
+const patternflyBlue400 = '#0066cc';
+const patternflyBlue500 = '#004080';
+const patternflyBlue600 = '#002952';
+const defaultPaletteColors = [
+  patternflyBlue400,
+  patternflyBlue500,
+  patternflyBlue600,
+];
+const muiTheme = getTheme('light');
+const chartsTheme: PersesChartsTheme = generateChartsTheme(muiTheme, {
+  thresholds: {
+    defaultColor: patternflyBlue300,
+    palette: defaultPaletteColors,
+  },
+});
+
+// PluginRegistry configuration to allow access to
+// visualization panels/charts (@perses-dev/panels-plugin)
+// and data handlers for tempo (@perses-dev/tempo-plugin).
+const pluginLoader = dynamicImportPluginLoader([
+  {
+    resource: panelsResource as PluginModuleResource,
+    importPlugin: () => import('@perses-dev/panels-plugin'),
+  },
+  {
+    resource: tempoResource as PluginModuleResource,
+    importPlugin: () => import('@perses-dev/tempo-plugin'),
+  },
+]);
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+      retry: 0,
+    },
+  },
+});
+
 function QueryBrowser() {
   const [value, setValue] = React.useState('{}');
-  
+
   // Use ref to prevent reload on each key tap in TraceQL input box
   const ref = React.useRef<HTMLInputElement>(null);
-
-  // Override eChart defaults 
-  const patternflyBlue300 = '#2b9af3';
-  const patternflyBlue400 = '#0066cc';
-  const patternflyBlue500 = '#004080';
-  const patternflyBlue600 = '#002952';
-  const defaultPaletteColors = [
-    patternflyBlue400,
-    patternflyBlue500,
-    patternflyBlue600,
-  ];
-  const muiTheme = getTheme('light');
-  const chartsTheme: PersesChartsTheme = generateChartsTheme(muiTheme, {
-    thresholds: {
-      defaultColor: patternflyBlue300,
-      palette: defaultPaletteColors,
-    },
-  });
-
-  // Perses provider configurations
-  const pluginLoader = dynamicImportPluginLoader([
-    {
-      resource: panelsResource as PluginModuleResource,
-      importPlugin: () => import('@perses-dev/panels-plugin'),
-    },
-    {
-      resource: tempoResource as PluginModuleResource,
-      importPlugin: () => import('@perses-dev/tempo-plugin'),
-    },
-  ]);
-  const queryClient = new QueryClient({
-    defaultOptions: {
-      queries: {
-        refetchOnWindowFocus: false,
-        retry: 0,
-      },
-    },
-  });
 
   return (
     <ThemeProvider theme={muiTheme}>
@@ -166,8 +169,8 @@ function QueryBrowser() {
                                 size: 'medium',
                               },
                             }}
-                            />
-                          </StackItem>
+                          />
+                        </StackItem>
                         <StackItem>
                           <div className="pf-v5-l-grid">
                             <div className="pf-v5-l-grid__item pf-m-10-col">

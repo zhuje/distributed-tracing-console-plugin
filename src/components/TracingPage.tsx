@@ -11,7 +11,7 @@ import { TempoStackDropdown } from './TempoStackDropdown';
 import { useURLState } from '../hooks/useURLState';
 import { useTempoStack } from '../hooks/useTempoStack';
 import { useTranslation } from 'react-i18next';
-import QueryBrowser from './QueryBrowser';
+import TraceQueryBrowser from './TraceQueryBrowser';
 
 import './example.css';
 
@@ -58,7 +58,7 @@ export default function TracingPage() {
               </Text>
             </TextContent>
           )}
-          <QueryBrowser />
+          <TraceQueryBrowser />
         </PageSection>
       </Page>
     </>

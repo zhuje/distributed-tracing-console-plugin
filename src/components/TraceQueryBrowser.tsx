@@ -28,11 +28,12 @@ import {
 import { DatasourceApi } from '@perses-dev/dashboards';
 import tempoResource from '@perses-dev/tempo-plugin/plugin.json';
 import { TextInput, Button } from '@patternfly/react-core';
-import { TraceTable } from './Table';
+import { TraceTable } from './TraceTable';
 import { PersesChartsTheme } from '@perses-dev/components';
 import { Stack, StackItem } from '@patternfly/react-core';
-import './QueryBrowser.css';
 import { ScatterChart } from '@perses-dev/panels-plugin';
+
+import './TraceQueryBrowser.css';
 
 // To configure a different endpoint for your Tempo instance
 // you need to modify the env variable 'BRIDGE_PLUGIN_PROXY'
@@ -116,7 +117,7 @@ const queryClient = new QueryClient({
   },
 });
 
-function QueryBrowser() {
+function TraceQueryBrowser() {
   const [value, setValue] = React.useState('{}');
 
   // Use ref to prevent reload on each key tap in TraceQL input box
@@ -210,4 +211,4 @@ function QueryBrowser() {
   );
 }
 
-export default QueryBrowser;
+export default TraceQueryBrowser;

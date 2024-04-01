@@ -14,37 +14,40 @@ import {
   Title,
   EmptyState,
   EmptyStateIcon,
-  EmptyStateBody,
 } from '@patternfly/react-core';
 import CubesIcon from '@patternfly/react-icons/dist/esm/icons/cubes-icon';
 
-const EmptyTable = () => (
-  <EmptyState>
-    <EmptyStateIcon icon={CubesIcon} />
-    <Title headingLevel="h4" size="lg">
-      Empty state
-    </Title>
-    <EmptyStateBody>No Data</EmptyStateBody>
-  </EmptyState>
-);
-const LoadingTable = () => (
-  <svg
-    className="pf-v5-c-spinner"
-    role="progressbar"
-    viewBox="0 0 100 100"
-    aria-label="Loading..."
-  >
-    <circle
-      className="pf-v5-c-spinner__path"
-      cx="50"
-      cy="50"
-      r="45"
-      fill="none"
-    />
-  </svg>
-);
+import { useTranslation } from 'react-i18next';
 
 export const TraceTable: React.FunctionComponent = () => {
+  const { t } = useTranslation('plugin__distributed-tracing-console-plugin');
+
+  const EmptyTable = () => (
+    <EmptyState>
+      <EmptyStateIcon icon={CubesIcon} />
+      <Title headingLevel="h4" size="lg">
+        {t('No Data')}
+      </Title>
+    </EmptyState>
+  );
+  
+  const LoadingTable = () => (
+    <svg
+      className="pf-v5-c-spinner"
+      role="progressbar"
+      viewBox="0 0 100 100"
+      aria-label="Loading..."
+    >
+      <circle
+        className="pf-v5-c-spinner__path"
+        cx="50"
+        cy="50"
+        r="45"
+        fill="none"
+      />
+    </svg>
+  );
+
   // Get trace data from Perses's DataQueriesProvider
   const traceData = useDataQueries('TraceQuery');
 
@@ -60,7 +63,7 @@ export const TraceTable: React.FunctionComponent = () => {
   }
 
   const columnNames = {
-    traceId: 'Trace ID',
+    traceId: 'Trace Id',
     durationMs: 'Duration (ms)',
     spanCount: 'Span count',
     errorCount: 'Error count',
@@ -76,11 +79,11 @@ export const TraceTable: React.FunctionComponent = () => {
     >
       <Thead>
         <Tr>
-          <Th modifier="wrap">{columnNames.traceId}</Th>
-          <Th modifier="wrap">{columnNames.durationMs}</Th>
-          <Th modifier="wrap">{columnNames.spanCount}</Th>
-          <Th modifier="wrap">{columnNames.errorCount}</Th>
-          <Th modifier="wrap">{columnNames.startTime}</Th>
+          <Th modifier="wrap">{t(columnNames.traceId)}</Th>
+          <Th modifier="wrap">{t(columnNames.durationMs)}</Th>
+          <Th modifier="wrap">{t(columnNames.spanCount)}</Th>
+          <Th modifier="wrap">{t(columnNames.errorCount)}</Th>
+          <Th modifier="wrap">{t(columnNames.startTime)}</Th>
         </Tr>
       </Thead>
       <Tbody>

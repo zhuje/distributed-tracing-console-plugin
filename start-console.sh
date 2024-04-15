@@ -20,6 +20,9 @@ set -e
 BRIDGE_K8S_AUTH_BEARER_TOKEN=$(oc whoami --show-token 2>/dev/null)
 BRIDGE_USER_SETTINGS_LOCATION="localstorage"
 
+PLUGIN_PROXY='{"services": [{"consoleAPIPath": "/api/proxy/plugin/distributed-tracing-plugin/backend", "authorize": true, "endpoint": "http://host.docker.internal:9001/"}]}'
+
+
 # Don't fail if the cluster doesn't have gitops.
 set +e
 GITOPS_HOSTNAME=$(oc -n openshift-gitops get route cluster -o jsonpath='{.spec.host}' 2>/dev/null)
@@ -40,7 +43,7 @@ if [ -x "$(command -v podman)" ]; then
         podman run --pull always \
         --rm --network=host \
         --env-file <(set | grep BRIDGE) \
-        --env BRIDGE_PLUGIN_PROXY='{"services": [{"consoleAPIPath": "/api/proxy/plugin/distributed-tracing-plugin/backend/", "endpoint":"http://localhost:3200","authorize":true}]}' \
+        --env BRIDGE_PLUGIN_PROXY='{"services": [{"consoleAPIPath": "/api/proxy/plugin/distributed-tracing-plugin/backend/", "endpoint":"http://localhost:9002","authorize":true}]}' \
         $CONSOLE_IMAGE
     else
         BRIDGE_PLUGINS="${npm_package_consolePlugin_name}=http://host.containers.internal:9001"
@@ -48,7 +51,7 @@ if [ -x "$(command -v podman)" ]; then
         --pull always \
         --rm -p "$CONSOLE_PORT":9000 \
         --env-file <(set | grep BRIDGE)  \
-        --env BRIDGE_PLUGIN_PROXY='{"services": [{"consoleAPIPath": "/api/proxy/plugin/distributed-tracing-plugin/backend/", "endpoint":"http://localhost:3200","authorize":true}]}' \
+        --env BRIDGE_PLUGIN_PROXY='{"services": [{"consoleAPIPath": "/api/proxy/plugin/distributed-tracing-plugin/backend/", "endpoint":"http://host.docker.internal:9002","authorize":true}]}' \
         $CONSOLE_IMAGE
     fi
 else
@@ -57,7 +60,7 @@ else
     --pull always \
     --rm -p "$CONSOLE_PORT":9000 \
     --env-file <(set | grep BRIDGE) \
-    --env BRIDGE_PLUGIN_PROXY='{"services": [{"consoleAPIPath": "/api/proxy/plugin/distributed-tracing-plugin/backend/", "endpoint":"http://localhost:3200","authorize":true}]}' \
+    --env BRIDGE_PLUGIN_PROXY='{"services": [{"consoleAPIPath": "/api/proxy/plugin/distributed-tracing-plugin/backend/", "endpoint":"http://host.docker.internal:9002","authorize":true}]}' \
     $CONSOLE_IMAGE 
 
 fi

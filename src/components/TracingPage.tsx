@@ -23,6 +23,9 @@ export default function TracingPage() {
   if (!tempoStackList) {
     return <div>{t('Loading...')}</div>;
   }
+
+  
+
   return (
     <>
       <HelmetProvider>

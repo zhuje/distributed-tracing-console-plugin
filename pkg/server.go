@@ -30,6 +30,9 @@ import (
 	"k8s.io/client-go/dynamic"
 
 	"k8s.io/client-go/tools/clientcmd"
+
+	proxy "github.com/openshift/distributed-tracing-console-plugin/pkg/proxy"
+
 )
 
 var c client.Client
@@ -101,6 +104,9 @@ func setupRoutes(cfg *Config) *mux.Router {
 	// serve list of TempoStacks found on the cluster
 	// we must version all apis to continue supporting them when v2 comes out
 	r.PathPrefix("/api/v1/list-tempostacks").HandlerFunc(TempoStackHandler(cfg))
+
+	// uses the namespace and name to fetch a particular tempo instance 
+	r.PathPrefix("/proxy/{namespace}/{name}").HandlerFunc(proxy.CreateProxyHandler(cfg.CertFile))
 
 	// r.PathPrefix("/proxy/{name}/{namespace}").HandlerFunc(fooProxyHandle())
 	// see proxy.go in console-dashobard 
@@ -224,6 +230,13 @@ func TempoStackHandler(cfg *Config) http.HandlerFunc {
 			log.WithError(err).Errorf("config error")
 			return
 		}
+
+		// for production on a cluster 
+		// config, err := rest.InClusterConfig()
+		// if err != nil {
+		// 	log.WithError(err).Error("cannot get in cluster config")
+		// 	return
+		// }
 
 		dynamicClient, err := dynamic.NewForConfig(config)
 		if err != nil {

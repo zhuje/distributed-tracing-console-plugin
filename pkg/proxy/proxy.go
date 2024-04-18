@@ -12,9 +12,7 @@ import (
 	"os"
 	"time"
 
-	validator "github.com/asaskevich/govalidator"
 	"github.com/gorilla/mux"
-	datasources "github.com/openshift/console-dashboards-plugin/pkg/datasources"
 	oscrypto "github.com/openshift/library-go/pkg/crypto"
 	"github.com/sirupsen/logrus"
 )
@@ -41,18 +39,7 @@ func FilterHeaders(r *http.Response) error {
 	return nil
 }
 
-func getProxy(datasourceName string, serviceCAfile string, datasourceManager *datasources.DatasourceManager) *httputil.ReverseProxy {
-	existingProxy := datasourceManager.GetProxy(datasourceName)
-
-	if existingProxy != nil {
-		return existingProxy
-	}
-
-	datasource := datasourceManager.GetDatasource(datasourceName)
-
-	if datasource == nil {
-		return nil
-	}
+func getProxy(namespace string, name string, serviceCAfile string ) *httputil.ReverseProxy {
 
 	// TODO: allow custom CA per datasource
 	serviceCertPEM, err := os.ReadFile(serviceCAfile)
@@ -91,8 +78,9 @@ func getProxy(datasourceName string, serviceCAfile string, datasourceManager *da
 
 	
 	// http://tempo-$name-query-frontend.$namespace:3200/
+	// targetURL := datasource.Spec.Plugin.Spec.DirectURL	
 
-	targetURL := datasource.Spec.Plugin.Spec.DirectURL
+	targetURL := fmt.Sprintf("http://tempo-%s-query-frontend.%s:3200", name, namespace)
 	proxyURL, err := url.Parse(targetURL)
 
 	if err != nil {
@@ -103,36 +91,37 @@ func getProxy(datasourceName string, serviceCAfile string, datasourceManager *da
 		reverseProxy.FlushInterval = time.Millisecond * 100
 		reverseProxy.Transport = transport
 		reverseProxy.ModifyResponse = FilterHeaders
-		datasourceManager.SetProxy(datasourceName, reverseProxy)
 		return reverseProxy
 	}
 }
 
-func CreateProxyHandler(serviceCAfile string, datasourceManager *datasources.DatasourceManager) func(http.ResponseWriter, *http.Request) {
+func CreateProxyHandler(serviceCAfile string) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
-		datasourceName := vars["datasourceName"]
+		namespace := vars["namespace"]
+		name := vars["name"]
 
-		if !validator.IsDNSName(datasourceName) {
-			log.Error("invalid datasource name")
-			http.Error(w, "invalid datasource name", http.StatusBadRequest)
+		if len(namespace) == 0 {
+			log.Errorf("cannot proxy request, namespace was not provided")
+			http.Error(w, "cannot proxy request, namespace was not provided", http.StatusBadRequest)
 			return
 		}
 
-		if len(datasourceName) == 0 {
-			log.Errorf("cannot proxy request, datasource name was not provided")
-			http.Error(w, "cannot proxy request, datasource name was not provided", http.StatusBadRequest)
+		if len(name) == 0 {
+			log.Errorf("cannot proxy request, tempostack name was not provided")
+			http.Error(w, "cannot proxy request, tempostack name was not provided", http.StatusBadRequest)
 			return
 		}
 
-		datasourceProxy := getProxy(datasourceName, serviceCAfile, datasourceManager)
+		tempoProxy := getProxy(namespace, name, serviceCAfile)
+		log.Infoln("CreateProxyHandler > getProxy ", tempoProxy)
 
-		if datasourceProxy == nil {
-			log.Errorf("cannot proxy request, invalid datasource proxy: %s", datasourceName)
-			http.Error(w, "cannot proxy request, invalid datasource proxy", http.StatusNotFound)
+		if tempoProxy == nil {
+			log.Errorf("cannot proxy request, invalid tempo proxy: %s, %s", namespace, name)
+			http.Error(w, "cannot proxy request, invalid tempo proxy", http.StatusNotFound)
 			return
 		}
 
-		http.StripPrefix(fmt.Sprintf("/proxy/%s", datasourceName), http.HandlerFunc(datasourceProxy.ServeHTTP)).ServeHTTP(w, r)
+		http.StripPrefix(fmt.Sprintf("/proxy/%s/%s", namespace, name), http.HandlerFunc(tempoProxy.ServeHTTP)).ServeHTTP(w, r)
 	}
 }

@@ -29,9 +29,11 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/dynamic"
 
-	"k8s.io/client-go/tools/clientcmd"
+	// "k8s.io/client-go/tools/clientcmd"
 
 	proxy "github.com/openshift/distributed-tracing-console-plugin/pkg/proxy"
+
+	"k8s.io/client-go/rest"
 
 )
 
@@ -223,20 +225,23 @@ func TempoStackHandler(cfg *Config) http.HandlerFunc {
 		// })
 		// _ = c.List(context.Background(), u)
 
-		// for testing locally
-		config, err := clientcmd.BuildConfigFromFlags("", "/Users/jezhu/.kube/config")
-		if err != nil {
-			w.Write([]byte("[]"))
-			log.WithError(err).Errorf("config error")
-			return
-		}
 
-		// for production on a cluster 
-		// config, err := rest.InClusterConfig()
+
+		
+		// FOR TESTING LOCALLY
+		// config, err := clientcmd.BuildConfigFromFlags("", "/Users/jezhu/.kube/config")
 		// if err != nil {
-		// 	log.WithError(err).Error("cannot get in cluster config")
+		// 	w.Write([]byte("[]"))
+		// 	log.WithError(err).Errorf("config error")
 		// 	return
 		// }
+
+		// for production on a cluster 
+		config, err := rest.InClusterConfig()
+		if err != nil {
+			log.WithError(err).Error("cannot get in cluster config")
+			return
+		}
 
 		dynamicClient, err := dynamic.NewForConfig(config)
 		if err != nil {

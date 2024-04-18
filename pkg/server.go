@@ -10,18 +10,11 @@ import (
 	"strings"
 	"time"
 
-	// "io"
-
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v3"
 
-	// v1alpha1 "github.com/grafana/tempo-operator/apis/tempo/v1alpha1"
-
-	// "k8s.io/client-go/kubernetes"
-
-	// "k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -29,11 +22,10 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/dynamic"
 
-	// "k8s.io/client-go/tools/clientcmd"
-
 	proxy "github.com/openshift/distributed-tracing-console-plugin/pkg/proxy"
 
-	"k8s.io/client-go/rest"
+	// "k8s.io/client-go/rest"
+	"k8s.io/client-go/tools/clientcmd"
 
 )
 
@@ -110,13 +102,10 @@ func setupRoutes(cfg *Config) *mux.Router {
 	// uses the namespace and name to fetch a particular tempo instance 
 	r.PathPrefix("/proxy/{namespace}/{name}").HandlerFunc(proxy.CreateProxyHandler(cfg.CertFile))
 
+	// JZ NOTES
 	// r.PathPrefix("/proxy/{name}/{namespace}").HandlerFunc(fooProxyHandle())
 	// see proxy.go in console-dashobard 
 	// create without the Watch objects first and 
-	// fooProxyHandler 
-		// fetch traces
-		// 
-
 
 	// serve plugin manifest according to enabled features
 	r.Path("/plugin-manifest.json").Handler(manifestHandler(cfg))
@@ -156,92 +145,30 @@ func healthHandler() http.HandlerFunc {
 
 func TempoStackHandler(cfg *Config) http.HandlerFunc {
 
-	// see DatasourceManager in console-dashboard-plugin 
+	// JZ NOTES see DatasourceManager in console-dashboard-plugin 
 
 
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// w.Write([]byte("TempoStackHandler pinged...\n"))
-
-		// vars := mux.Vars(r)
-
-		// namespace := vars["namespace"]
-		// name := vars["name"]
-
-		// tempoStackService := fmt.Sprintf("http://tempo-%s-query-frontend.%s:3200/api/search", name, namespace)
-		// log.Infof("tempoStackService = %s\n", tempoStackService)
-
-		// io.WriteString(w, tempoStackService)
-
-		// return a list of tempostacks
-
-		// resources stored in ETCD
-		// use K8 api to access ETCD
-		// need persmission to access
-
-		// return name and id of tempostack then we can proxy to a specific service
-
-		// Questions for the tracing team (done 11/11 11AM)
-		// 1. ask if we can use the license for v1alpha1
-		// 2. ask how we obtain the service for querying tempostacks once we got the list of tempostack names
-
-		// Testing
+		// JZ NOTES Testing
 		// 1. Create a mock service that returns the name and namespace for the TempoStackList
 		// 2. Create the image and deploy it in a pod
 
+		
+		// JZ NOTES - FOR TESTING LOCALLY
+		config, err := clientcmd.BuildConfigFromFlags("", "/Users/jezhu/.kube/config")
+		if err != nil {
+			w.Write([]byte("[]"))
+			log.WithError(err).Errorf("config error")
+			return
+		}
+
+		// JZ NOTES - FOR PRODUCTION on a cluster 
 		// config, err := rest.InClusterConfig()
 		// if err != nil {
 		// 	log.WithError(err).Error("cannot get in cluster config")
 		// 	return
 		// }
-
-		// c, err := kubernetes.NewForConfig(config)
-		// if err != nil {
-		// 	log.WithError(err).Error("cannot create k8s client")
-		// 	return
-		// }
-
-		// ctx := context.Background()
-
-		// tempostacks := &v1alpha1.TempoStackList{}
-
-		// err = client.List(ctx, tempostacks)
-		// if err != nil {
-		// 	// handle err
-		// }
-		// for _, tempo := range tempostacks.Items {
-		// 	fmt.Printf("%s/%s\n", tempo.Namespace, tempo.Name)
-		// }
-
-		// // c is a created client.
-		// _ = c.List(ctx, tempostacks)
-
-		// Using a unstructured object.
-		// u := &unstructured.UnstructuredList{}
-		// u.SetGroupVersionKind(schema.GroupVersionKind{
-		// 	Group:   "tempo.grafana.com",
-		// 	Kind:    "TempoStack",
-		// 	Version: "v1alpha1",
-		// })
-		// _ = c.List(context.Background(), u)
-
-
-
-		
-		// FOR TESTING LOCALLY
-		// config, err := clientcmd.BuildConfigFromFlags("", "/Users/jezhu/.kube/config")
-		// if err != nil {
-		// 	w.Write([]byte("[]"))
-		// 	log.WithError(err).Errorf("config error")
-		// 	return
-		// }
-
-		// for production on a cluster 
-		config, err := rest.InClusterConfig()
-		if err != nil {
-			log.WithError(err).Error("cannot get in cluster config")
-			return
-		}
 
 		dynamicClient, err := dynamic.NewForConfig(config)
 		if err != nil {
@@ -255,13 +182,6 @@ func TempoStackHandler(cfg *Config) http.HandlerFunc {
 			Version:  "v1alpha1",
 			Resource: "tempostacks",
 		}
-
-		// testing purposes only
-		// gvr := schema.GroupVersionResource{
-		// 	Group:    "config.openshift.io",
-		// 	Version:  "v1",
-		// 	Resource: "ingresses",
-		// }
 
 		resource, err := dynamicClient.Resource(gvr).List(context.TODO(), metav1.ListOptions{})
 		if err != nil {

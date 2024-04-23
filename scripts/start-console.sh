@@ -22,6 +22,7 @@ BRIDGE_USER_SETTINGS_LOCATION="localstorage"
 
 PLUGIN_PROXY='{"services": [{"consoleAPIPath": "/api/proxy/plugin/distributed-tracing-plugin/backend", "authorize": true, "endpoint": "http://host.docker.internal:9001/"}]}'
 
+npm_package_consolePlugin_name='distributed-tracing-console-plugin'
 
 # Don't fail if the cluster doesn't have gitops.
 set +e
@@ -34,6 +35,7 @@ fi
 echo "API Server: $BRIDGE_K8S_MODE_OFF_CLUSTER_ENDPOINT"
 echo "Console Image: $CONSOLE_IMAGE"
 echo "Console URL: http://localhost:${CONSOLE_PORT}"
+echo "npm_package_consolePlugin_name : ${npm_package_consolePlugin_name}"
 
 # Prefer podman if installed. Otherwise, fall back to docker.
 if [ -x "$(command -v podman)" ]; then
@@ -51,7 +53,7 @@ if [ -x "$(command -v podman)" ]; then
         --pull always \
         --rm -p "$CONSOLE_PORT":9000 \
         --env-file <(set | grep BRIDGE)  \
-        --env BRIDGE_PLUGIN_PROXY='{"services": [{"consoleAPIPath": "/api/proxy/plugin/distributed-tracing-plugin/backend/", "endpoint":"http://host.docker.internal:9002","authorize":true}]}' \
+        --env BRIDGE_PLUGIN_PROXY='{"services": [{"consoleAPIPath": "/api/proxy/plugin/distributed-tracing-plugin/backend/", "endpoint":"http://localhost:9002","authorize":true}]}' \
         $CONSOLE_IMAGE
     fi
 else
@@ -60,7 +62,7 @@ else
     --pull always \
     --rm -p "$CONSOLE_PORT":9000 \
     --env-file <(set | grep BRIDGE) \
-    --env BRIDGE_PLUGIN_PROXY='{"services": [{"consoleAPIPath": "/api/proxy/plugin/distributed-tracing-plugin/backend/", "endpoint":"http://host.docker.internal:9002","authorize":true}]}' \
+    --env BRIDGE_PLUGIN_PROXY='{"services": [{"consoleAPIPath": "/api/proxy/plugin/distributed-tracing-plugin/backend/", "endpoint":"http://localhost:9002","authorize":true}]}' \
     $CONSOLE_IMAGE 
 
 fi

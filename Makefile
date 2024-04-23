@@ -1,67 +1,54 @@
-FEATURES?=
-
 .PHONY: install-frontend
 install-frontend:
-	cd web && npm install
+	cd web && npm install --legacy-peer-deps
 
 .PHONY: install-frontend-ci
 install-frontend-ci:
-	cd web && npm ci
+	cd web && npm ci --legacy-peer-deps
 
 .PHONY: install-frontend-ci-clean
 install-frontend-ci-clean: install-frontend-ci
-	cd web && npm cache clean --force
-
-.PHONY: lint-frontend
-lint-frontend:
-	cd web && npm run lint
-
-.PHONY: test-unit-frontend
-test-unit-frontend:
-	cd web && npm run test:unit
-
-.PHONY: build-frontend-standalone
-build-frontend-standalone:
-	cd web && npm run build:standalone
-
-.PHONY: test-frontend
-test-frontend: test-unit-frontend build-frontend-standalone
-	cd web && npm run test
+	cd web && npm cache clean --force --legacy-peer-deps
 
 .PHONY: build-frontend
 build-frontend:
 	cd web && npm run build
 
+.PHONY: start-frontend
+start-frontend:
+	cd web && npm run start
+
+.PHONY: start-console
+start-console:
+	./scripts/start-console.sh
+
+.PHONY: lint-frontend
+lint-frontend:
+	cd web && npm run lint
+
 .PHONY: install-backend
 install-backend:
 	go mod download
-
-.PHONY: build-backend
-build-backend:
-	go build -mod=readonly -o plugin-backend cmd/plugin-backend.go
 
 .PHONY: test-unit-backend
 test-unit-backend:
 	go test ./...
 
-.PHONY: start-console
-start-console:
-	cd web && ./scripts/start-console.sh
-
-.PHONY: install
-install: install-backend build-backend install-frontend
-
-.PHONY: install-build-backend
-install: install-backend build-backend 
-
-.PHONY: start-frontend
-start-frontend: 
-	cd web && npm run dev
+.PHONY: build-backend
+build-backend:
+	go build -o plugin-backend cmd/plugin-backend.go
 
 .PHONY: start-backend
-start-backend: build-backend
-	./plugin-backend -port 9002 -features "$(FEATURES)"
+start-backend:
+	go run ./cmd/plugin-backend.go
 
 .PHONY: build-image
-build-image: install-backend build-backend install-frontend build-frontend
-	./scripts/image.sh -t latest
+build-image:
+	./scripts/build-image.sh
+
+.PHONY: install
+install: install-frontend install-backend
+
+.PHONY: example
+example: 
+	cd docs && oc apply -f prometheus-datasource-example.yaml && oc apply -f prometheus-dashboard-example.yaml

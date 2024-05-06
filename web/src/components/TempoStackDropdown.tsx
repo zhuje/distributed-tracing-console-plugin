@@ -5,12 +5,13 @@ import {
   SelectVariant,
   SelectOptionObject,
 } from '@patternfly/react-core';
-import { K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk';
 import { useTranslation } from 'react-i18next';
+import { TempoStackID } from '../../models/TempoStackID'
+
 
 type TempoStackDropdownProps = {
   id: string;
-  tempoStackOptions: K8sResourceCommon[];
+  tempoStackOptions: TempoStackID[];
   selectedNamespace: string | undefined;
   selectedTempoList: string | undefined;
   setTempoList: (
@@ -67,8 +68,8 @@ export const TempoStackDropdown = (props: TempoStackDropdownProps) => {
 
   const tempoStackSelectOptions = props.tempoStackOptions.map((tempoStack) => {
     return new TempoStackSelectOption(
-      tempoStack.metadata.namespace,
-      tempoStack.metadata.name,
+      tempoStack.namespace,
+      tempoStack.name,
     );
   });
 

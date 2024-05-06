@@ -9,22 +9,24 @@ import {
 } from '@patternfly/react-core';
 import { TempoStackDropdown } from './TempoStackDropdown';
 import { useURLState } from '../hooks/useURLState';
-import { useTempoStack } from '../hooks/useTempoStack';
 import { useTranslation } from 'react-i18next';
 import PersesWrapper from './PersesWrapper';
+
+// testing 
+import { useTempoStack2 } from '../hooks/useTempoStack2';
 
 import './example.css';
 
 export default function TracingPage() {
   const { tempoStack, namespace, setTempoStackInURL } = useURLState();
-  const { tempoStackList } = useTempoStack();
+  
+  const { tempoStackList2 } = useTempoStack2();
+
   const { t } = useTranslation('plugin__distributed-tracing-console-plugin');
 
-  if (!tempoStackList) {
+  if (!tempoStackList2) {
     return <div>{t('Loading...')}</div>;
   }
-
-  
 
   return (
     <>
@@ -45,15 +47,15 @@ export default function TracingPage() {
           </label>
           <TempoStackDropdown
             id="tempostack-dropdown"
-            tempoStackOptions={tempoStackList}
+            tempoStackOptions={tempoStackList2}
             selectedTempoList={tempoStack}
             selectedNamespace={namespace}
             setTempoList={setTempoStackInURL}
           />
-          {tempoStackList.find(
+          {tempoStackList2.find(
             (listItem) =>
-              listItem.metadata.namespace === namespace &&
-              listItem.metadata.name === tempoStack,
+              listItem.namespace === namespace &&
+              listItem.name === tempoStack,
           ) && (
             <TextContent>
               <Text component="p">

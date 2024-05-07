@@ -16,7 +16,7 @@ var (
 	keyArg          = flag.String("key", "", "private key file path to enable TLS (disabled by default)")
 	featuresArg     = flag.String("features", "", "enabled features, comma separated")
 	staticPathArg   = flag.String("static-path", "", "static files path to serve frontend (default: './web/dist')")
-	configPathArg   = flag.String("config-path", "", "config files path (default: './config')")
+	configPathArg   = flag.String("config-path", "", "config files path (default: './web/dist')")
 	pluginConfigArg = flag.String("plugin-config-path", "", "plugin yaml configuration")
 	log             = logrus.WithField("module", "main")
 )

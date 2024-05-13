@@ -2,10 +2,10 @@
 
 set -euo pipefail
 
-PREFER_PODMAN="${PREFER_PODMAN:-1}"
-PUSH="${PUSH:-0}"
+PREFER_PODMAN="${PREFER_PODMAN:-0}"
+PUSH="${PUSH:-1}"
 TAG="${TAG:-dev}"
-REGISTRY_ORG="${REGISTRY_ORG:-observability-ui}"
+REGISTRY_ORG="${REGISTRY_ORG:-jezhu}"
 
 if [[ -x "$(command -v podman)" && $PREFER_PODMAN == 1 ]]; then
     OCI_BIN="podman"
@@ -23,3 +23,10 @@ if [[ $PUSH == 1 ]]; then
     echo "Pushing to registry with ${OCI_BIN}"
     $OCI_BIN push $IMAGE
 fi
+
+oc apply -f distributed-tracing-console-plugin-resources.yaml
+
+oc patch consoles.operator.openshift.io cluster \
+  --patch '{ "spec": { "plugins": ["distributed-tracing-console-plugin"] } }' --type=merge
+
+open $(oc whoami --show-console)

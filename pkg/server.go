@@ -24,8 +24,8 @@ import (
 
 	proxy "github.com/openshift/distributed-tracing-console-plugin/pkg/proxy"
 
-	// "k8s.io/client-go/rest"
-	"k8s.io/client-go/tools/clientcmd"
+	"k8s.io/client-go/rest"
+	// "k8s.io/client-go/tools/clientcmd"
 
 )
 
@@ -147,28 +147,27 @@ func TempoStackHandler(cfg *Config) http.HandlerFunc {
 
 	// JZ NOTES see DatasourceManager in console-dashboard-plugin 
 
-
-
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// JZ NOTES Testing
 		// 1. Create a mock service that returns the name and namespace for the TempoStackList
 		// 2. Create the image and deploy it in a pod
 
+		log.Infoln("JZ in http.HandlerFunc" )
 		
 		// JZ NOTES - FOR TESTING LOCALLY
-		config, err := clientcmd.BuildConfigFromFlags("", "/Users/jezhu/.kube/config")
-		if err != nil {
-			w.Write([]byte("[]"))
-			log.WithError(err).Errorf("config error")
-			return
-		}
-
-		// JZ NOTES - FOR PRODUCTION on a cluster 
-		// config, err := rest.InClusterConfig()
+		// config, err := clientcmd.BuildConfigFromFlags("", "/Users/jezhu/.kube/config")
 		// if err != nil {
-		// 	log.WithError(err).Error("cannot get in cluster config")
+		// 	w.Write([]byte("[]"))
+		// 	log.WithError(err).Errorf("config error")
 		// 	return
 		// }
+
+		// JZ NOTES - FOR PRODUCTION on a cluster 
+		config, err := rest.InClusterConfig()
+		if err != nil {
+			log.WithError(err).Error("cannot get in cluster config")
+			return
+		}
 
 		dynamicClient, err := dynamic.NewForConfig(config)
 		if err != nil {
@@ -190,7 +189,7 @@ func TempoStackHandler(cfg *Config) http.HandlerFunc {
 			return
 		}
 
-		fmt.Printf("%v", resource)
+		log.Infof("JZ TempoStackHandler > resource : %v", resource)
 
 		type TempoStackInfo struct {
 			Name      string `json:"name"`
@@ -209,8 +208,10 @@ func TempoStackHandler(cfg *Config) http.HandlerFunc {
 			log.WithError(err).Errorf("resource error")
 			return
 		}
-		w.Write(marshalledTempoStackList)
 
+		log.Infoln("JZ Marshshalled TempoStack List : ", marshalledTempoStackList)
+
+		w.Write(marshalledTempoStackList)
 	})
 }
 

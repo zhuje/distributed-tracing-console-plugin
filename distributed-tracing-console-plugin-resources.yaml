@@ -49,9 +49,10 @@ spec:
       labels:
         app: distributed-tracing-console-plugin
     spec:
+      serviceAccountName: openshift-tracing-deployment
       containers:
         - name: distributed-tracing-console-plugin
-          image: "quay.io/jezhu/distributed-tracing-console-plugin:1715045671"
+          image: "quay.io/jezhu/distributed-tracing-console-plugin:dev"
           args:
             - "-port=9443"
             - "-cert=/var/serving-cert/tls.crt"
@@ -116,11 +117,12 @@ spec:
       port: 9443
   proxy:
   - alias: backend
+    authorization: None
     endpoint:
       service:
-        name: distributed-tracing-console-plugin-backend
+        name: distributed-tracing-console-plugin
         namespace: openshift-tracing
-        port: 9002
+        port: 9443
       type: Service
 
 ---

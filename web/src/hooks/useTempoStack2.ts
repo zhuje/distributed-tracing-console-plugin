@@ -15,7 +15,7 @@ export const useTempoStack2 = () => {
     // declare the async data fetching function
     const fetchData = async () => {
       const { request } = cancellableFetch<TempoStackListResponse[]>(
-        `/api/proxy/plugin/distributed-tracing-plugin/backend/api/v1/list-tempostacks`,
+        `/api/plugins/distributed-tracing-console-plugin/api/v1/list-tempostacks`,
       );
 
       let response: Array<TempoStackListResponse> = [];

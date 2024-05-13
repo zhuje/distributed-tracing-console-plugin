@@ -81,7 +81,11 @@ func getProxy(namespace string, name string, serviceCAfile string ) *httputil.Re
 	// targetURL := datasource.Spec.Plugin.Spec.DirectURL	
 
 	targetURL := fmt.Sprintf("http://tempo-%s-query-frontend.%s:3200", name, namespace)
+	log.Infoln("JZ getProxy > targetURL ", targetURL)
+
 	proxyURL, err := url.Parse(targetURL)
+	log.Infoln("JZ getProxy > targetURL ", proxyURL)
+
 
 	if err != nil {
 		log.WithError(err).Error("cannot parse direct URL", targetURL)
@@ -91,6 +95,9 @@ func getProxy(namespace string, name string, serviceCAfile string ) *httputil.Re
 		reverseProxy.FlushInterval = time.Millisecond * 100
 		reverseProxy.Transport = transport
 		reverseProxy.ModifyResponse = FilterHeaders
+
+		log.Infoln("JZ getProxy > reverseProxy ", reverseProxy)
+
 		return reverseProxy
 	}
 }
@@ -114,6 +121,8 @@ func CreateProxyHandler(serviceCAfile string) func(http.ResponseWriter, *http.Re
 		}
 
 		tempoProxy := getProxy(namespace, name, serviceCAfile)
+		log.Infoln("CreateProxyHandler > namespace ", namespace)
+		log.Infoln("CreateProxyHandler > name ", name)
 		log.Infoln("CreateProxyHandler > getProxy ", tempoProxy)
 
 		if tempoProxy == nil {

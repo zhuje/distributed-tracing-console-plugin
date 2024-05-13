@@ -30,8 +30,8 @@ import { PersesChartsTheme } from '@perses-dev/components';
 
 import TraceQueryBrowser from './TraceQueryBrowser';
 
-// testing purposes only
-const name = 'tempo-simplest-query-frontend'
+// testing purposes only -- be to replaced with dynamic fetching of tempostack instances
+const name = 'simplest'
 const namespace = 'a-jezhu-tempostack-ns'
 
 // To configure a different endpoint for your Tempo instance
@@ -45,7 +45,7 @@ const proxyDatasource: GlobalDatasource = {
     plugin: {
       kind: 'TempoDatasource',
       spec: {
-        directUrl: `/api/proxy/plugin/distributed-tracing-plugin/backend/proxy/${namespace}/${name}`,
+        directUrl: `/api/plugins/distributed-tracing-console-plugin/proxy/${namespace}/${name}`,
       },
     },
   },

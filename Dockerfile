@@ -31,6 +31,6 @@ FROM registry.access.redhat.com/ubi9/ubi-minimal
 COPY --from=web-builder /opt/app-root/web/dist /opt/app-root/web/dist
 COPY --from=go-builder /opt/app-root/plugin-backend /opt/app-root
 
-ENTRYPOINT ["/opt/app-root/plugin-backend", "-static-path", "/opt/app-root/web/dist"]
+ENTRYPOINT ["/opt/app-root/plugin-backend", "-static-path", "/opt/app-root/web/dist", "-config-path", "/opt/app-root/web/dist"]
 
 # ENTRYPOINT ["tail", "-f", "/dev/null"]

@@ -62,6 +62,8 @@ export const TraceTable: React.FunctionComponent = () => {
     return <EmptyTable />;
   }
 
+  console.log("TraceTables > useDataQueries('TraceQuery')", traceData)
+
   const columnNames = {
     traceId: 'Trace Id',
     durationMs: 'Duration (ms)',

@@ -1,0 +1,43 @@
+# Color variables for console output 
+GREEN='\033[0;32m'
+ENDCOLOR='\033[0m' # No Color
+RED='\033[0;31m'
+
+# Creates a output to title each sub-action
+add_title()
+{
+  eval title="$1"
+  echo "${GREEN} *** ${title} *** ${ENDCOLOR}\n" 
+  echo
+}
+
+# 1. Apply all the K8 Resources needed to deploy distributed-tracing-console-plugin on a cluster 
+title1="Deploy K8 resources for distritributed-tracing-console-plugin"
+add_title "\${title1}"
+
+oc apply -f ../distributed-tracing-console-plugin-resources.yaml
+
+echo
+
+# 2. Deploy TempoStackOperator and one TempoStack instance 
+title2="Deploy K8 resources for TempoStack Operator and TempoStack Instance"
+add_title "\${title2}"
+
+./create-tempostack.sh
+
+echo
+
+# 3. Once deployed, patch the Console operator config to enable the plugin.
+title3="Patch Console Operator "
+add_title "\${title3}"
+
+oc patch consoles.operator.openshift.io cluster \
+  --patch '{ "spec": { "plugins": ["distributed-tracing-console-plugin"] } }' --type=merge
+
+echo
+
+# 4. Open Openshift Console
+title4="Opening web browser to Openshift console "
+add_title "\${title4}"
+
+open $(oc whoami --show-console)

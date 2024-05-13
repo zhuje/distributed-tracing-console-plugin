@@ -5,6 +5,38 @@ metadata:
 
 ---
 apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: openshift-tracing-deployment
+  namespace: openshift-tracing
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: list-tempostacks
+  namespace: openshift-tracing
+rules:
+- apiGroups: ["tempo.grafana.com"]
+  resources: ["tempostacks"]
+  verbs: ["list"]
+  
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: list-tempostacks
+subjects:
+- kind: ServiceAccount
+  name: openshift-tracing-deployment
+  namespace: openshift-tracing
+roleRef:
+  kind: ClusterRole
+  name: list-tempostacks
+  apiGroup: rbac.authorization.k8s.io
+
+---
+apiVersion: v1
 kind: Service
 metadata:
   annotations:

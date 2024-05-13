@@ -55,8 +55,8 @@ EOF
 
 
 # Check if Tempo operator is installed
-echo "** sleeping for 20s to await Tempo Operator ready status **"
-sleep 20
+echo "** sleeping for 60s to await Tempo Operator ready status **"
+sleep 60
 echo "** Checking Tempo Operator Status... **"
 oc get csv -n openshift-tempo-operator
 
@@ -117,32 +117,6 @@ spec:
           type: route
 EOF
 
-                                                                          
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRole
-metadata:
-  name: list-tempostacks
-rules:
-- apiGroups: ["tempo.grafana.com"]
-  resources: ["tempostacks"]
-  verbs: ["list"]
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRoleBinding
-metadata:
-  name: list-tempostacks
-subjects:
-- kind: ServiceAccount
-  name: default
-  namespace: openshift-tracing
-roleRef:
-  kind: ClusterRole
-  name: list-tempostacks
-  apiGroup: rbac.authorization.k8s.io
-clusterrole.rbac.authorization.k8s.io/list-tempostacks created
-clusterrolebinding.rbac.authorization.k8s.io/list-tempostacks created
-
-
 # Forward Mock Traces to TempoStack 
 oc apply -f - <<EOF
 apiVersion: batch/v1
@@ -161,15 +135,15 @@ spec:
           args:
             - -otlp-endpoint=tempo-simplest-distributor:4317
             - -otlp-insecure
-            - -duration=30s
+            - -duration=21600s
             - -workers=1
       restartPolicy: Never
   backoffLimit: 4
 EOF
 
 # Will need to add sleep here too 
-echo "** sleeping for 20s to await TempoStack ready status **"
-sleep 20
+echo "** sleeping for 60s to await TempoStack ready status **"
+sleep 60
 echo "** continuing... ** "
 
 # Go to Jaeger UI 

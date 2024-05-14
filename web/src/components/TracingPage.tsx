@@ -63,7 +63,10 @@ export default function TracingPage() {
               </Text>
             </TextContent>
           )}
-          <PersesWrapper />
+          <PersesWrapper 
+           selectedNamespace={namespace}
+           selectedTempoStack={tempoStack}
+          />
         </PageSection>
       </Page>
     </>

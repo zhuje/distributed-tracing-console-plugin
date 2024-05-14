@@ -7,6 +7,11 @@ PUSH="${PUSH:-1}"
 TAG="${TAG:-dev}"
 REGISTRY_ORG="${REGISTRY_ORG:-jezhu}"
 
+echo "PREFER_PODMAN= ${PREFER_PODMAN}"
+echo "PUSH= ${PUSH}"
+echo "TAG= ${TAG}" 
+echo "REGISTRY_ORG= ${REGISTRY_ORG}"
+
 if [[ -x "$(command -v podman)" && $PREFER_PODMAN == 1 ]]; then
     OCI_BIN="podman"
 else

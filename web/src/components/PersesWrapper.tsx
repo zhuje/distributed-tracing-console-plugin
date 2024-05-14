@@ -119,6 +119,8 @@ const queryClient = new QueryClient({
 function PersesWrapper() {
   const [query, setQuery] = React.useState('{}');
 
+  console.log('JZ PersesWrapper > query: ', query)
+
   return (
     <ThemeProvider theme={muiTheme}>
       <ChartsProvider chartsTheme={chartsTheme}>

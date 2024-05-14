@@ -28,9 +28,13 @@ add_title "\${title2}"
 echo
 
 # 3. Once deployed, patch the Console operator config to enable the plugin.
+# This determines what plugins the console is looking for. 
 title3="Patch Console Operator "
 add_title "\${title3}"
 
+# FOR FUTURE ENHANCEMENT: Retrieve current plugins and append `distributed-tracing-console-plugin`. 
+# because we are replacing the current array with this one. So all current plugins will be removed
+# until operator reconciles all plugins. 
 oc patch consoles.operator.openshift.io cluster \
   --patch '{ "spec": { "plugins": ["distributed-tracing-console-plugin"] } }' --type=merge
 

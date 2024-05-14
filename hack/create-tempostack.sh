@@ -105,8 +105,8 @@ spec:
   resources:
     total:
       limits:
-        memory: 2Gi
-        cpu: 2000m
+        memory: 4Gi
+        cpu: 4000m
   template:
     queryFrontend:
       jaegerQuery:
@@ -118,28 +118,47 @@ spec:
 EOF
 
 # Forward Mock Traces to TempoStack 
+# oc apply -f - <<EOF
+# apiVersion: batch/v1
+# kind: Job
+# metadata:
+#   name: tracegen
+#   namespace: a-jezhu-tempostack-ns
+# spec:
+#   template:
+#     spec:
+#       containers:
+#         - name: tracegen
+#           image: ghcr.io/open-telemetry/opentelemetry-collector-contrib/tracegen:latest
+#           command:
+#             - "./tracegen"
+#           args:
+#             - -otlp-endpoint=tempo-simplest-distributor:4317
+#             - -otlp-insecure
+#             - -duration=21600s
+#             - -workers=1
+#       restartPolicy: Never
+#   backoffLimit: 4
+# EOF
+
 oc apply -f - <<EOF
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: tracegen
+  name: generate-traces
   namespace: a-jezhu-tempostack-ns
 spec:
   template:
     spec:
-      containers:
-        - name: tracegen
-          image: ghcr.io/open-telemetry/opentelemetry-collector-contrib/tracegen:latest
-          command:
-            - "./tracegen"
-          args:
-            - -otlp-endpoint=tempo-simplest-distributor:4317
-            - -otlp-insecure
-            - -duration=21600s
-            - -workers=1
       restartPolicy: Never
-  backoffLimit: 4
+      containers:
+      - name: tracegen
+        image: ghcr.io/grafana/xk6-client-tracing:v0.0.2
+        env:
+        - name: ENDPOINT
+          value: otel-collector:4317
 EOF
+
 
 # Will need to add sleep here too 
 echo "** sleeping for 60s to await TempoStack ready status **"

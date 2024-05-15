@@ -28,6 +28,7 @@ import { DatasourceApi } from '@perses-dev/dashboards';
 import tempoResource from '@perses-dev/tempo-plugin/plugin.json';
 import { PersesChartsTheme } from '@perses-dev/components';
 import TraceQueryBrowser from './TraceQueryBrowser';
+import { TraceEmptyState } from './TraceEmptyState';
 
 // // testing purposes only -- be to replaced with dynamic fetching of tempostack instances
 // const name = 'simplest'
@@ -126,7 +127,7 @@ type SelectedTempoStackProps = {
 // }
 
 function PersesWrapper(props: SelectedTempoStackProps ) {
-  const [query, setQuery] = React.useState('{}');
+  const [query, setQuery] = React.useState('{duration>700ms}');
   // const [namespace, setNamespace] = React.useState('')
 //   const [tempoStack] = React.useState<SelectedTempoStack | undefined>(() =>
 //     props.selectedNamespace && props.selectedTempoStack
@@ -163,7 +164,9 @@ function PersesWrapper(props: SelectedTempoStackProps ) {
   } else {
     // TODO if tempoStack name/namespace is empty return patternfly empty state
     // https://www.patternfly.org/components/empty-state/
-    return <></>
+    return (
+      <TraceEmptyState />
+    )
   }
 
   const datasourceApi = new DatasourceApiImpl(proxyDatasource);

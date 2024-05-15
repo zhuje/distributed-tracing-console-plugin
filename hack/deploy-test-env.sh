@@ -30,7 +30,7 @@ echo
 # 3. Deploy Red Hat build of OpenTelemetry 
 # https://docs.openshift.com/container-platform/4.15/observability/otel/otel-installing.html
 
-oc apply -f deploy
+./deploy-otel-all.sh
 
 # 3. Once deployed, patch the Console operator config to enable the plugin.
 # This determines what plugins the console is looking for. 

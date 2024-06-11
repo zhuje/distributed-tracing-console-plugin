@@ -11,11 +11,24 @@ add_title()
   echo
 }
 
+TAG="${TAG:-dev}"
+REGISTRY_ORG="${REGISTRY_ORG:-jezhu}"
+BASE_IMAGE="quay.io/${REGISTRY_ORG}/distributed-tracing-console-plugin"
+DISTRIBUTED_TRACING_CONSOLE_PLUGIN_TEST_DEPLOY_IMAGE=${BASE_IMAGE}:${TAG}
+
+printf "${GREEN}Environment Varibles ${ENDCOLOR}\n"
+printf "TAG = ${TAG}\n" 
+printf "REGISTRY_ORG = ${REGISTRY_ORG}\n"
+printf "DISTRIBUTED_TRACING_CONSOLE_PLUGIN_TEST_DEPLOY_IMAGE = ${DISTRIBUTED_TRACING_CONSOLE_PLUGIN_TEST_DEPLOY_IMAGE}\n"
+
+read -p "$(printf "Do these env variables look right? (Y/N): ")" confirm && [[ $confirm == [yY] || $confirm == [yY][eE][sS] ]] || exit 1
+
 # 1. Apply all the K8 Resources needed to deploy distributed-tracing-console-plugin on a cluster 
 title1="Deploy K8 resources for distritributed-tracing-console-plugin"
 add_title "\${title1}"
 
-oc apply -f ./distributed-tracing-console-plugin-resources.yaml
+# oc apply -f ./distributed-tracing-console-plugin-resources.yaml
+DISTRIBUTED_TRACING_CONSOLE_PLUGIN_TEST_DEPLOY_IMAGE=${DISTRIBUTED_TRACING_CONSOLE_PLUGIN_TEST_DEPLOY_IMAGE} ./deploy-distributed-tracing-console-plugin-resources.sh
 
 echo
 

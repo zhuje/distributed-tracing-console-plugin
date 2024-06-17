@@ -16,10 +16,10 @@ export const TraceEmptyState: React.FunctionComponent = () => {
     <EmptyState>
       <EmptyStateIcon icon={CubesIcon} />
       <Title headingLevel="h4" size="lg">
-        {t('Empty state')}
+        {t('No data source selected')}
       </Title>
       <EmptyStateBody>
-        {t('No a TempoStack instance has been selected.')}
+        {t('Select a Tempo Stack instance to explore data')}
       </EmptyStateBody>
     </EmptyState>
   );

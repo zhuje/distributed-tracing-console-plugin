@@ -17,6 +17,8 @@ export const TraceQueryBrowser = (props: TraceQueryBrowserProps) => {
   return (
     <Stack hasGutter>
       <StackItem className="tracing-query-browser-stack">
+        {window.innerHeight}
+        {window.innerWidth}
         <ScatterChart.PanelComponent
           contentDimensions={{
             width: 1100,

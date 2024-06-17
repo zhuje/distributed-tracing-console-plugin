@@ -19,10 +19,11 @@ import (
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/dynamic"
+	"k8s.io/client-go/rest"
 
 	proxy "github.com/openshift/distributed-tracing-console-plugin/pkg/proxy"
+	datasources "github.com/openshift/distributed-tracing-console-plugin/pkg/datasources"
 
-	"k8s.io/client-go/rest"
 )
 
 var log = logrus.WithField("module", "server")
@@ -86,6 +87,8 @@ func Start(cfg *Config) {
 }
 
 func setupRoutes(cfg *Config) (*mux.Router, *PluginConfig) {
+	datasourceManager := datasources.NewDatasourceManager()
+
 	configHandlerFunc, pluginConfig := configHandler(cfg)
 
 	r := mux.NewRouter()
@@ -96,7 +99,7 @@ func setupRoutes(cfg *Config) (*mux.Router, *PluginConfig) {
 	r.PathPrefix("/api/v1/list-tempostacks").HandlerFunc(TempoStackHandler(cfg))
 
 	// uses the namespace and name to fetch a particular tempo instance 
-	r.PathPrefix("/proxy/{namespace}/{name}").HandlerFunc(proxy.CreateProxyHandler(cfg.CertFile))
+	r.PathPrefix("/proxy/{namespace}/{name}").HandlerFunc(proxy.CreateProxyHandler(cfg.CertFile, datasourceManager))
 
 	// serve plugin manifest according to enabled features
 	r.Path("/plugin-manifest.json").Handler(manifestHandler(cfg))

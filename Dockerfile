@@ -1,4 +1,4 @@
-FROM registry.access.redhat.com/ubi9/nodejs-18:latest AS web-builder 
+FROM registry.redhat.io/ubi9/nodejs-18:latest AS web-builder
 
 WORKDIR /opt/app-root
 
@@ -6,7 +6,7 @@ USER 0
 
 COPY web/package*.json web/
 COPY Makefile Makefile
-RUN make install-frontend-ci-clean
+RUN make install-frontend
 
 COPY web/ web/
 RUN make build-frontend

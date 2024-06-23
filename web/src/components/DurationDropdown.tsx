@@ -8,6 +8,7 @@ import {
 } from '@patternfly/react-core';
 import { useTranslation } from 'react-i18next';
 
+// These time ranges are the same as the Metrics page 
 enum Duration {
   fiveMinutes = '5m',
   fifteenMinutes = '15m',
@@ -21,16 +22,9 @@ enum Duration {
   fourteenDays = '336h',
 }
 
-const DurationMap = new Map<string, string>([
-  ['fiveMinutes', '5m'],
-  ['fifteenMinutes', '15m'],
-]);
-
 export const DurationDropdown = (props) => {
   const [isOpen, setIsOpen] = React.useState(false);
   const [selected, setSelected] = React.useState(Duration.thirtyMinutes);
-
-  props.handleDurationChange(selected);
 
   const { t } = useTranslation('plugin__distributed-tracing-console-plugin');
 
@@ -45,14 +39,10 @@ export const DurationDropdown = (props) => {
     if (!value) {
       setSelected(undefined);
     }
-    console.log('Selected Value: ', value);
+    console.log('DurationDropdown > selected Value: ', value);
     setSelected(value);
     setIsOpen(false);
-  };
-
-  const clearSelection = () => {
-    setSelected(null);
-    setIsOpen(false);
+    props.handleDurationChange(value);
   };
 
   const titleId = 'time-range-select';
@@ -75,16 +65,13 @@ export const DurationDropdown = (props) => {
           width={200}
         >
           <SelectOption key="Option 1" value="5m">
-            {' '}
-            Last 5m{' '}
+            Last 5m
           </SelectOption>
           <SelectOption key="Option 2" value="15m">
-            {' '}
             Last 15m
           </SelectOption>
           <SelectOption key="Option 3" value="30m">
-            {' '}
-            Last 30m{' '}
+            Last 30m
           </SelectOption>
         </Select>
       </GridItem>

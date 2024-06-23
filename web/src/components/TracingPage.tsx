@@ -9,17 +9,17 @@ import { useTempoStack } from '../hooks/useTempoStack';
 
 import { DurationDropdown } from './DurationDropdown';
 import { Grid, GridItem } from '@patternfly/react-core';
+import { DurationString } from '@perses-dev/prometheus-plugin';
 
 
 export default function TracingPage() {
   const { tempoStack, namespace, setTempoStackInURL } = useURLState();
-  const [ duration, setDuration] = React.useState('30m'); 
+  const [ duration, setDuration] = React.useState<DurationString>('30m'); 
 
   const handleDurationChange = (timerange) => {
     setDuration(timerange)
     console.log('TracingPage > handleDurationChange > duration: ', duration)
   }
-
 
   const { loading, tempoStackList } = useTempoStack();
 
@@ -39,7 +39,6 @@ export default function TracingPage() {
           <Title headingLevel="h1"> {t('Tracing')} </Title>
         </PageSection>
         <PageSection variant="light">
-
           <Grid>
             <GridItem span={7}>
               <TempoStackDropdown

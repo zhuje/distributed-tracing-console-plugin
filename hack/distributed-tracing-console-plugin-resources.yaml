@@ -84,7 +84,7 @@ spec:
       serviceAccountName: openshift-tracing-deployment
       containers:
         - name: distributed-tracing-console-plugin
-          image: "quay.io/<my-repository>/distributed-tracing-console-plugin:test"
+          image: "quay.io/jezhu/distributed-tracing-console-plugin:dev"
           args:
             - "-port=9443"
             - "-cert=/var/serving-cert/tls.crt"

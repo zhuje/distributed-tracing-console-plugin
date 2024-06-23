@@ -47,6 +47,8 @@ export const TraceTable: React.FunctionComponent = () => {
   // Get trace data from Perses's DataQueriesProvider
   const traceData = useDataQueries('TraceQuery');
 
+  console.log("Trace data: ", traceData);
+
   if (!traceData?.isLoading && traceData?.queryResults?.length < 1) {
     return <EmptyTable />;
   } else if (traceData?.isLoading) {

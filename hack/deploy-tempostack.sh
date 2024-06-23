@@ -136,6 +136,31 @@ spec:
           value: otel-collector:4317
 EOF
 
+# oc apply -f - <<EOF
+# apiVersion: batch/v1
+# kind: Job
+# metadata:
+#   name: generate-traces
+#   namespace: ${TEMPOSTACK_NS}
+# spec:
+#   template:
+#     spec:
+#       containers:
+#       - name: telemetrygen
+#         image: ghcr.io/open-telemetry/opentelemetry-collector-contrib/telemetrygen:v0.92.0
+#         args:
+#         - traces
+#         - --otlp-endpoint=tempo-simplest-distributor:4317
+#         - --otlp-insecure
+#         - --traces=1
+#         - --span-duration=200ms
+#         - --service=test-dt-plugin
+#         - --duration=7200s
+#       restartPolicy: Never
+#   backoffLimit: 4 
+# EOF
+
+
 
 # Will need to add sleep here too 
 echo "** sleeping for 60s to await TempoStack ready status **"

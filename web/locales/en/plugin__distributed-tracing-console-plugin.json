@@ -1,9 +1,8 @@
 {
+  "Select a Time Range": "Select a Time Range",
   "Select a TempoStack": "Select a TempoStack",
   "No Tempo Stack selected": "No Tempo Stack selected",
   "Select a Tempo Stack instance to explore data": "Select a Tempo Stack instance to explore data",
   "No Data": "No Data",
-  "Loading": "Loading",
-  "Tracing": "Tracing",
-  "You have selected": "You have selected"
+  "Tracing": "Tracing"
 }

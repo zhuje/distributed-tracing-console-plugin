@@ -5,11 +5,21 @@ import { useTranslation } from 'react-i18next';
 import { useURLState } from '../hooks/useURLState';
 import { PersesWrapper } from './PersesWrapper';
 import { TempoStackDropdown } from './TempoStackDropdown';
-
 import { useTempoStack } from '../hooks/useTempoStack';
+
+import { DurationDropdown } from './DurationDropdown';
+import { Grid, GridItem } from '@patternfly/react-core';
+
 
 export default function TracingPage() {
   const { tempoStack, namespace, setTempoStackInURL } = useURLState();
+  const [ duration, setDuration] = React.useState('30m'); 
+
+  const handleDurationChange = (timerange) => {
+    setDuration(timerange)
+    console.log('TracingPage > handleDurationChange > duration: ', duration)
+  }
+
 
   const { loading, tempoStackList } = useTempoStack();
 
@@ -29,20 +39,27 @@ export default function TracingPage() {
           <Title headingLevel="h1"> {t('Tracing')} </Title>
         </PageSection>
         <PageSection variant="light">
-          <label htmlFor="tempostack-dropdown">
-            {t('Select a TempoStack')}
-          </label>
-          <TempoStackDropdown
-            id="tempostack-dropdown"
-            tempoStackOptions={tempoStackList}
-            selectedTempoStackName={tempoStack}
-            selectedNamespace={namespace}
-            setTempoList={setTempoStackInURL}
-            isLoading={loading}
-          />
+
+          <Grid>
+            <GridItem span={7}>
+              <TempoStackDropdown
+              id="tempostack-dropdown"
+              tempoStackOptions={tempoStackList}
+              selectedTempoStackName={tempoStack}
+              selectedNamespace={namespace}
+              setTempoList={setTempoStackInURL}
+              isLoading={loading}
+            />
+            </GridItem>
+            <GridItem span={5}>
+              {/* Testing */}
+              <DurationDropdown handleDurationChange={handleDurationChange} />
+            </GridItem>
+          </Grid>
           <PersesWrapper
             selectedNamespace={namespace}
             selectedTempoStack={tempoStack}
+            duration={duration}
           />
         </PageSection>
       </Page>

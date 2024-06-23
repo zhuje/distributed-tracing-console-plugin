@@ -35,32 +35,31 @@ echo "Console Image: $CONSOLE_IMAGE"
 echo "Console URL: http://localhost:${CONSOLE_PORT}"
 echo "npm_package_consolePlugin_name : ${npm_package_consolePlugin_name}"
 
-# Prefer podman if installed. Otherwise, fall back to docker.
-if [ -x "$(command -v podman)" ]; then
-    if [ "$(uname -s)" = "Linux" ]; then
-        # Use host networking on Linux since host.containers.internal is unreachable in some environments.
-        BRIDGE_PLUGINS="${npm_package_consolePlugin_name}=http://localhost:9002"
-        podman run --pull always \
-        --rm --network=host \
-        --env-file <(set | grep BRIDGE) \
-        --env BRIDGE_PLUGIN_PROXY='{"services": [{"consoleAPIPath": "/api/proxy/plugin/distributed-tracing-plugin/backend/", "endpoint":"http://localhost:9002","authorize":true}]}' \
-        $CONSOLE_IMAGE
-    else
-        BRIDGE_PLUGINS="${npm_package_consolePlugin_name}=http://host.containers.internal:9002"
-        podman run \
-        --pull always \
-        --rm -p "$CONSOLE_PORT":9000 \
-        --env-file <(set | grep BRIDGE)  \
-        --env BRIDGE_PLUGIN_PROXY='{"services": [{"consoleAPIPath": "/api/proxy/plugin/distributed-tracing-plugin/backend/", "endpoint":"http://host.containers.internal:9002","authorize":true}]}' \
-        $CONSOLE_IMAGE
-    fi
-else
-    BRIDGE_PLUGINS="${npm_package_consolePlugin_name}=http://host.docker.internal:9002"
+# # Prefer podman if installed. Otherwise, fall back to docker.
+# if [ -x "$(command -v podman)" ]; then
+#     if [ "$(uname -s)" = "Linux" ]; then
+#         # Use host networking on Linux since host.containers.internal is unreachable in some environments.
+#         BRIDGE_PLUGINS="${npm_package_consolePlugin_name}=http://localhost:9002"
+#         podman run --pull always \
+#         --rm --network=host \
+#         --env-file <(set | grep BRIDGE) \
+#         --env BRIDGE_PLUGIN_PROXY='{"services": [{"consoleAPIPath": "/api/proxy/plugin/distributed-tracing-plugin/backend/", "endpoint":"http://localhost:9002","authorize":true}]}' \
+#         $CONSOLE_IMAGE
+#     else
+#         BRIDGE_PLUGINS="${npm_package_consolePlugin_name}=http://host.containers.internal:9002"
+#         podman run \
+#         --pull always \
+#         --rm -p "$CONSOLE_PORT":9000 \
+#         --env-file <(set | grep BRIDGE)  \
+#         --env BRIDGE_PLUGIN_PROXY='{"services": [{"consoleAPIPath": "/api/proxy/plugin/distributed-tracing-plugin/backend/", "endpoint":"http://host.containers.internal:9002","authorize":true}]}' \
+#         $CONSOLE_IMAGE
+#     fi
+# else
+    BRIDGE_PLUGINS="${npm_package_consolePlugin_name}=http://host.docker.internal:9001"
     docker run \
     --pull always \
     --rm -p "$CONSOLE_PORT":9000 \
     --env-file <(set | grep BRIDGE) \
-    --env BRIDGE_PLUGIN_PROXY='{"services": [{"consoleAPIPath": "/api/proxy/plugin/distributed-tracing-plugin/backend/", "endpoint":"http://host.docker.internal:9002","authorize":true}]}' \
+    --env BRIDGE_PLUGIN_PROXY='{"services": [{"consoleAPIPath": "/api/proxy/plugin/distributed-tracing-console-plugin/backend/", "endpoint":"https://host.docker.internal:9002","authorize":true},{"consoleAPIPath": "/api/plugins/distributed-tracing-console-plugin/api/v1/list-tempostacks", "endpoint":"https://host.docker.internal:9002/api/v1/list-tempostacks","authorize":true}]}' \
     $CONSOLE_IMAGE 
-
-fi
+# fi

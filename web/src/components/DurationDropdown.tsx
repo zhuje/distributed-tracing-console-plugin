@@ -7,24 +7,56 @@ import {
   GridItem,
 } from '@patternfly/react-core';
 import { useTranslation } from 'react-i18next';
+import { DurationString } from '@perses-dev/prometheus-plugin';
 
-// These time ranges are the same as the Metrics page 
-enum Duration {
-  fiveMinutes = '5m',
-  fifteenMinutes = '15m',
-  thirtyMinutes = '30m',
-  oneHour = '1h',
-  twoHours = '2h',
-  sixHours = '6h',
-  twelveHours = '12h',
-  oneDay = '24h',
-  sevenDays = '168h',
-  fourteenDays = '336h',
+type timeRangeSelectOption = {
+  display: string, 
+  value: DurationString
 }
+
+// The time range selection mirros the options on the Metrics Page 
+const timeRangeSelctOptions: timeRangeSelectOption[] = [
+  {
+    display: 'Last 5 minutes', 
+    value: '5m'
+  },
+  {
+    display: 'Last 15 minutes', 
+    value: '15m'
+  },
+  {
+    display: 'Last 30 minutes', 
+    value: '30m'
+  },
+  {
+    display: 'Last 1 hour', 
+    value: '1h'
+  },
+  {
+    display: 'Last 6 hours', 
+    value: '6h'
+  },
+  {
+    display: 'Last 12 hours', 
+    value: '12h'
+  },
+  {
+    display: 'Last 1 day', 
+    value: '1d'
+  },
+  {
+    display: 'Last 7 day', 
+    value: '7d'
+  },
+  {
+    display: 'Last 14 day', 
+    value: '14d'
+  },
+]
 
 export const DurationDropdown = (props) => {
   const [isOpen, setIsOpen] = React.useState(false);
-  const [selected, setSelected] = React.useState(Duration.thirtyMinutes);
+  const [selected, setSelected] = React.useState('30m');
 
   const { t } = useTranslation('plugin__distributed-tracing-console-plugin');
 
@@ -40,7 +72,7 @@ export const DurationDropdown = (props) => {
       setSelected(undefined);
     }
     console.log('DurationDropdown > selected Value: ', value);
-    setSelected(value);
+    setSelected(value.toString());
     setIsOpen(false);
     props.handleDurationChange(value);
   };
@@ -64,7 +96,7 @@ export const DurationDropdown = (props) => {
           placeholderText={t('Select a Time Range')}
           width={200}
         >
-          <SelectOption key="Option 1" value="5m">
+          {/* <SelectOption key="Option 1" value={Duration.fiveMinutes}>
             Last 5m
           </SelectOption>
           <SelectOption key="Option 2" value="15m">
@@ -72,7 +104,14 @@ export const DurationDropdown = (props) => {
           </SelectOption>
           <SelectOption key="Option 3" value="30m">
             Last 30m
-          </SelectOption>
+          </SelectOption> */}
+          {
+            timeRangeSelctOptions.map((option)=> (
+              <SelectOption key={option.display} value={option.value}>
+                t({option.display})
+              </SelectOption>
+            ))
+          }
         </Select>
       </GridItem>
     </Grid>

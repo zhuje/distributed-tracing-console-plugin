@@ -566,10 +566,14 @@ EOF`,
     // Wait for trace detail page to fully render span bars after navigation
     cy.findByTestId('span-duration-bar', { timeout: 30000 }).should('have.length.greaterThan', 1);
     cy.findByTestId('span-duration-bar').eq(1).click();
-    // Switch to the Attributes tab (the Links tab may still be selected from the previous trace)
-    cy.get('button.MuiTab-root').contains('Attributes').click();
-    // Wait for attributes panel to load
-    cy.get('.MuiListItemText-root', { timeout: 10000 }).should('be.visible');
+    // Switch to the Attributes tab if tab bar is present, otherwise attributes are shown inline
+    cy.get('body').then(($body) => {
+      if ($body.find('button.MuiTab-root:contains("Attributes")').length > 0) {
+        cy.get('button.MuiTab-root').contains('Attributes').click();
+      }
+    });
+    // Wait for attributes to load
+    cy.get('.MuiListItemText-root, .MuiTypography-h5', { timeout: 10000 }).should('be.visible');
     cy.muiTraceAttributes({
       'network.peer.address': { value: ['1.2.3.4', '127.0.0.1'] },
       'peer.service': { value: (text) => ['telemetrygen-server', 'telemetrygen-client'].includes(text) },
@@ -621,10 +625,14 @@ EOF`,
     // Wait for trace detail page to fully render span bars after navigation
     cy.findByTestId('span-duration-bar', { timeout: 30000 }).should('have.length.greaterThan', 1);
     cy.findByTestId('span-duration-bar').eq(1).click();
-    // Switch to the Attributes tab (the Links tab may still be selected from the previous trace)
-    cy.get('button.MuiTab-root').contains('Attributes').click();
-    // Wait for attributes panel to load
-    cy.get('.MuiListItemText-root', { timeout: 10000 }).should('be.visible');
+    // Switch to the Attributes tab if tab bar is present, otherwise attributes are shown inline
+    cy.get('body').then(($body) => {
+      if ($body.find('button.MuiTab-root:contains("Attributes")').length > 0) {
+        cy.get('button.MuiTab-root').contains('Attributes').click();
+      }
+    });
+    // Wait for attributes to load
+    cy.get('.MuiListItemText-root, .MuiTypography-h5', { timeout: 10000 }).should('be.visible');
     cy.muiTraceAttributes({
       'network.peer.address': { value: ['1.2.3.4', '127.0.0.1'] },
       'peer.service': { value: (text) => ['telemetrygen-server', 'telemetrygen-client'].includes(text) },
@@ -1113,7 +1121,7 @@ EOF`,
     cy.get('a.MuiLink-root', { timeout: 30000 }).should('be.visible');
 
     cy.log('Switch filter type to Span Name');
-    cy.contains('label', 'Filter').parent()
+    cy.contains('label', 'Filter').parents('.pf-v6-c-form__group, .pf-v5-c-form__group').first()
       .find('.pf-v6-c-menu-toggle, .pf-v5-c-menu-toggle').first().click();
     cy.pfSelectMenuItem('Span Name').click();
 
@@ -1135,7 +1143,7 @@ EOF`,
     cy.pfCloseButtonIfExists('Close label group');
 
     cy.log('Switch filter type to Status');
-    cy.contains('label', 'Filter').parent()
+    cy.contains('label', 'Filter').parents('.pf-v6-c-form__group, .pf-v5-c-form__group').first()
       .find('.pf-v6-c-menu-toggle, .pf-v5-c-menu-toggle').first().click();
     cy.pfSelectMenuItem('Status').click();
 
@@ -1157,7 +1165,7 @@ EOF`,
     cy.pfCloseButtonIfExists('Close label group');
 
     cy.log('Switch filter type to Span Duration');
-    cy.contains('label', 'Filter').parent()
+    cy.contains('label', 'Filter').parents('.pf-v6-c-form__group, .pf-v5-c-form__group').first()
       .find('.pf-v6-c-menu-toggle, .pf-v5-c-menu-toggle').first().click();
     cy.pfSelectMenuItem('Span Duration').click();
 
@@ -1186,7 +1194,7 @@ EOF`,
     cy.pfCloseButtonIfExists('Close label group');
 
     cy.log('Switch filter type back to Service Name');
-    cy.contains('label', 'Filter').parent()
+    cy.contains('label', 'Filter').parents('.pf-v6-c-form__group, .pf-v5-c-form__group').first()
       .find('.pf-v6-c-menu-toggle, .pf-v5-c-menu-toggle').first().click();
     cy.pfSelectMenuItem('Service Name').click();
 

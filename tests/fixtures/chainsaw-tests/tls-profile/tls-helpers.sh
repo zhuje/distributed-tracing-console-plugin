@@ -70,6 +70,8 @@ patch_tls_args() {
   local current_args
   current_args=$(kubectl get deployment "$DEPLOYMENT" -n "$NAMESPACE" \
     -o jsonpath='{.spec.template.spec.containers[0].args}')
+  # Default to empty array when COO does not set any args
+  current_args="${current_args:-[]}"
 
   local new_args="$current_args"
 
@@ -87,25 +89,29 @@ patch_tls_args() {
   fi
 
   echo "Patching deployment args: $new_args"
+  # Use "add" so the patch works whether or not the args field already exists.
   kubectl patch deployment "$DEPLOYMENT" -n "$NAMESPACE" --type=json \
-    -p "[{\"op\": \"replace\", \"path\": \"/spec/template/spec/containers/0/args\", \"value\": $new_args}]"
+    -p "[{\"op\": \"add\", \"path\": \"/spec/template/spec/containers/0/args\", \"value\": $new_args}]"
 
   wait_for_rollout
 }
 
-# Revert TLS CLI args to the COO default (Intermediate profile: -tls-min-version=VersionTLS12).
+# Remove TLS CLI args added for testing. The plugin defaults to the Intermediate profile
+# (TLS 1.2+) when no -tls-min-version arg is present, so we strip rather than restore a
+# specific value — this works regardless of whether COO passes the arg in CI or not.
 remove_tls_args() {
-  echo "Reverting TLS CLI args to COO Intermediate defaults..."
+  echo "Removing test TLS CLI args from deployment..."
   local current_args
   current_args=$(kubectl get deployment "$DEPLOYMENT" -n "$NAMESPACE" \
     -o jsonpath='{.spec.template.spec.containers[0].args}')
+  current_args="${current_args:-[]}"
 
   local new_args
   new_args=$(echo "$current_args" | jq \
-    '[.[] | select(startswith("-tls-min-version=") or startswith("-tls-cipher-suites=") | not)] + ["-tls-min-version=VersionTLS12"]')
+    '[.[] | select(startswith("-tls-min-version=") or startswith("-tls-cipher-suites=") | not)]')
 
   kubectl patch deployment "$DEPLOYMENT" -n "$NAMESPACE" --type=json \
-    -p "[{\"op\": \"replace\", \"path\": \"/spec/template/spec/containers/0/args\", \"value\": $new_args}]"
+    -p "[{\"op\": \"add\", \"path\": \"/spec/template/spec/containers/0/args\", \"value\": $new_args}]"
 
   wait_for_rollout
 }

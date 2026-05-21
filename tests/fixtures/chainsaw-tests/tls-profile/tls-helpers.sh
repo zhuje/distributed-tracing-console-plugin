@@ -14,7 +14,7 @@ LABEL_SELECTOR="app.kubernetes.io/instance=distributed-tracing"
 fail() { echo "FAIL: $1"; exit 1; }
 
 # Scale down the observability-operator to prevent it from reconciling the
-# plugin deployment while we patch TLS env vars for testing.
+# plugin deployment while we patch TLS CLI args for testing.
 scale_down_operator() {
   echo "=== Scaling down $OPERATOR_DEPLOYMENT to prevent reconciliation ==="
   kubectl scale deployment "$OPERATOR_DEPLOYMENT" -n "$NAMESPACE" --replicas=0
@@ -60,34 +60,52 @@ wait_for_rollout() {
   kubectl wait --for=condition=Ready pods -l "$LABEL_SELECTOR" -n "$NAMESPACE" --timeout=120s
 }
 
-# Patch the deployment with TLS environment variables.
-# Args: $1=TLS_MIN_VERSION value (optional), $2=TLS_CIPHER_SUITES value (optional)
-patch_tls_env() {
+# Patch the deployment CLI args with TLS settings, mirroring what COO does when it reads
+# the cluster TLS profile from apiservers.config.openshift.io/cluster.
+# Args: $1=-tls-min-version value (optional), $2=-tls-cipher-suites value (optional, comma-separated)
+patch_tls_args() {
   local min_version="${1:-}"
   local cipher_suites="${2:-}"
 
-  local env_patch='[]'
+  local current_args
+  current_args=$(kubectl get deployment "$DEPLOYMENT" -n "$NAMESPACE" \
+    -o jsonpath='{.spec.template.spec.containers[0].args}')
+
+  local new_args="$current_args"
 
   if [ -n "$min_version" ]; then
-    env_patch=$(echo "$env_patch" | jq --arg v "$min_version" '. + [{"name": "TLS_MIN_VERSION", "value": $v}]')
+    new_args=$(echo "$new_args" | jq --arg v "-tls-min-version=$min_version" \
+      '[.[] | select(startswith("-tls-min-version=") | not)] + [$v]')
   fi
 
   if [ -n "$cipher_suites" ]; then
-    env_patch=$(echo "$env_patch" | jq --arg v "$cipher_suites" '. + [{"name": "TLS_CIPHER_SUITES", "value": $v}]')
+    new_args=$(echo "$new_args" | jq --arg v "-tls-cipher-suites=$cipher_suites" \
+      '[.[] | select(startswith("-tls-cipher-suites=") | not)] + [$v]')
+  else
+    new_args=$(echo "$new_args" | jq \
+      '[.[] | select(startswith("-tls-cipher-suites=") | not)]')
   fi
 
-  echo "Patching deployment with env: $env_patch"
+  echo "Patching deployment args: $new_args"
   kubectl patch deployment "$DEPLOYMENT" -n "$NAMESPACE" --type=json \
-    -p "[{\"op\": \"add\", \"path\": \"/spec/template/spec/containers/0/env\", \"value\": $env_patch}]"
+    -p "[{\"op\": \"replace\", \"path\": \"/spec/template/spec/containers/0/args\", \"value\": $new_args}]"
 
   wait_for_rollout
 }
 
-# Remove all TLS environment variables from the deployment (revert to default).
-remove_tls_env() {
-  echo "Removing TLS environment variables from deployment..."
+# Revert TLS CLI args to the COO default (Intermediate profile: -tls-min-version=VersionTLS12).
+remove_tls_args() {
+  echo "Reverting TLS CLI args to COO Intermediate defaults..."
+  local current_args
+  current_args=$(kubectl get deployment "$DEPLOYMENT" -n "$NAMESPACE" \
+    -o jsonpath='{.spec.template.spec.containers[0].args}')
+
+  local new_args
+  new_args=$(echo "$current_args" | jq \
+    '[.[] | select(startswith("-tls-min-version=") or startswith("-tls-cipher-suites=") | not)] + ["-tls-min-version=VersionTLS12"]')
+
   kubectl patch deployment "$DEPLOYMENT" -n "$NAMESPACE" --type=json \
-    -p '[{"op": "remove", "path": "/spec/template/spec/containers/0/env"}]' 2>/dev/null || true
+    -p "[{\"op\": \"replace\", \"path\": \"/spec/template/spec/containers/0/args\", \"value\": $new_args}]"
 
   wait_for_rollout
 }

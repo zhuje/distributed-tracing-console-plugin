@@ -914,10 +914,36 @@ Cypress.Commands.add(
   'verifyTracesVisible',
   (tempoInstance: string, tenant: string) => {
     cy.log('Verify traces are visible in the UI');
+
+    // After TLS profile changes the plugin pod may have restarted. The web console
+    // removes the plugin route until its health polling re-detects the plugin.
+    // Reload every 15 s for up to 9 minutes to allow the console to recover.
+    const retryIntervalMs = 15000;
+    const maxRetries = 36; // 9 minutes — console backoff can be long after pod restart; annotation in tls-helpers.sh shortens this in practice
+
+    const retryUntilReady = (attemptsLeft: number) => {
+      cy.get('body').then(($body) => {
+        if ($body.find('input[placeholder="Select a Tempo instance"]').length > 0) {
+          cy.log('Plugin is ready');
+        } else if (attemptsLeft > 0) {
+          cy.log(`Plugin not ready yet, waiting ${retryIntervalMs / 1000}s before re-navigating (${attemptsLeft} attempts left)...`);
+          cy.wait(retryIntervalMs);
+          // Use cy.visit() rather than cy.reload() to force a clean navigation that
+          // re-fetches the console page and plugin manifests from the server.
+          cy.visit('/observe/traces');
+          cy.url().should('include', '/observe/traces');
+          cy.dismissWelcomeModal();
+          retryUntilReady(attemptsLeft - 1);
+        }
+      });
+    };
+
     cy.visit('/observe/traces');
     cy.url().should('include', '/observe/traces');
     cy.dismissWelcomeModal();
-    cy.get('input[placeholder="Select a Tempo instance"]', { timeout: 30000 }).should('exist');
+    retryUntilReady(maxRetries);
+
+    cy.get('input[placeholder="Select a Tempo instance"]', { timeout: 60000 }).should('exist');
     cy.pfTypeahead('Select a Tempo instance').click();
     cy.pfSelectMenuItem(tempoInstance).click();
     cy.pfTypeahead('Select a tenant').click();

@@ -1,15 +1,15 @@
 # Test Coverage Report - Distributed Tracing Console Plugin
-**Generated:** April 30, 2026
+**Generated:** May 25, 2026
 **Test Framework:** Cypress E2E
 **Test File:** `tests/e2e/dt-plugin-tests.cy.ts`
 
 ## Executive Summary
 
-This report provides a comprehensive analysis of the current Cypress E2E test coverage for the OpenShift Distributed Tracing Console Plugin. The test suite covers core functionality across plugin installation, trace visualization, RBAC, span links navigation, TraceQL queries, AI-powered trace analysis, custom time range selection, scatter plot interaction, attribute-based filtering, and operator installation workflows.
+This report provides a comprehensive analysis of the current Cypress E2E test coverage for the OpenShift Distributed Tracing Console Plugin. The test suite covers core functionality across plugin installation, trace visualization, RBAC, span links navigation, TraceQL queries, AI-powered trace analysis, custom time range selection, scatter plot interaction, attribute-based filtering, TLS profile configuration, TLS certificate rotation, and operator installation workflows.
 
 **Overall Coverage:** ~97% of core features
-**Total Tests:** 11 main test cases
-**Lines of Test Code:** ~1300 lines
+**Total Tests:** 12 main test cases
+**Lines of Test Code:** ~1400 lines
 
 ---
 
@@ -226,16 +226,30 @@ This report provides a comprehensive analysis of the current Cypress E2E test co
 
 ---
 
-### 12. TLS Profile Configuration
+### 12. TLS Certificate Rotation
+
+| Feature | Test Coverage | Coverage Level |
+|---------|--------------|---------------|
+| **Certificate Rotation Workflow** | | |
+| - Pre-rotation cert serial recording | Test 10, cert-rotation chainsaw test | Full |
+| - Secret deletion and service-ca regeneration | Test 10, cert-rotation chainsaw test | Full |
+| - New cert propagation to pod volume mount | Test 10, cert-rotation chainsaw test | Full |
+| - Dynamic cert reload verification (openssl serial match) | Test 10, cert-rotation chainsaw test | Full |
+| - No pod restart assertion | Test 10, cert-rotation chainsaw test | Full |
+| - /health endpoint post-rotation | Test 10, cert-rotation chainsaw test | Full |
+
+---
+
+### 13. TLS Profile Configuration
 
 | Feature | Test Coverage | Coverage Level |
 |---------|--------------|---------------|
 | **TLS Profile Verification** | | |
-| - Default Intermediate profile (TLS 1.2 + 1.3) | Test 7, tls-profile-intermediate chainsaw test | Full |
-| - Modern profile (TLS 1.3 only) | Test 7, tls-profile-modern chainsaw test | Full |
-| - Custom cipher suites | Test 7, tls-profile-custom-ciphers chainsaw test | Full |
-| - Old profile (TLS 1.0+) | Test 7, tls-profile-old chainsaw test | Full |
-| - Profile revert to default | Test 7, tls-profile-revert chainsaw test | Full |
+| - Default Intermediate profile (TLS 1.2 + 1.3) | Test 11, tls-profile-intermediate chainsaw test | Full |
+| - Modern profile (TLS 1.3 only) | Test 11, tls-profile-modern chainsaw test | Full |
+| - Custom cipher suites | Test 11, tls-profile-custom-ciphers chainsaw test | Full |
+| - Old profile (TLS 1.0+) | Test 11, tls-profile-old chainsaw test | Full |
+| - Profile revert to default | Test 11, tls-profile-revert chainsaw test | Full |
 | **nmap Endpoint Scanning** | | |
 | - TLS version enumeration (ssl-enum-ciphers) | All TLS chainsaw tests | Full |
 | - Cipher suite verification | tls-profile-custom-ciphers | Full |
@@ -245,11 +259,16 @@ This report provides a comprehensive analysis of the current Cypress E2E test co
 | - /features endpoint under each profile | All TLS chainsaw tests | Full |
 | - /plugin-manifest.json under each profile | All TLS chainsaw tests | Full |
 | **UI Verification** | | |
-| - Traces visible after each profile change | Test 7, cy.verifyTracesVisible() | Full |
+| - Traces visible after each profile change | Test 11, cy.verifyTracesVisible() | Full |
 | **Operator Management** | | |
 | - Operator scale-down for testing | tls-profile-setup | Full |
 | - Operator scale-up after testing | tls-profile-revert | Full |
 | - tls-scanner pod lifecycle | tls-profile-setup/revert | Full |
+| **Console Re-detection** | | |
+| - consoles/cluster spec.plugins re-registration after scale-down | tls-helpers.sh scale_down_operator() | Full |
+| - ConsolePlugin CR annotation to trigger bridge re-check (scale-down) | tls-helpers.sh scale_down_operator() | Full |
+| - ConsolePlugin CR annotation to trigger bridge re-check (rollout) | tls-helpers.sh wait_for_rollout() | Full |
+| - Plugin accessible after operator scale-down | Test 11, cy.verifyTracesVisible() after tls-profile-setup | Full |
 
 ---
 
@@ -303,24 +322,27 @@ This report provides a comprehensive analysis of the current Cypress E2E test co
 
 ```mermaid
 graph TD
-    A[before hook] --> B[Setup & Login]
-    B --> C[Install Operators]
-    C --> D[Configure Plugins]
-    D --> E[Create UIPlugin Instance]
-    E --> F[Run Test Cases]
-    F --> G[Test 1: Empty State]
-    F --> H[Test 2: Traces & RBAC]
-    F --> I[Test 3: Trace Limit]
-    F --> J[Test 4: Cutoff Box]
-    F --> K[Test 5: AI Analysis]
-    F --> L[Test 6: TraceQL Query]
-    F --> O[Test 7: Custom Time Range]
-    F --> P[Test 8: Scatter Plot]
-    F --> Q[Test 9: Attribute Filters]
-    F --> S[Test 10: TLS Profiles]
-    F --> R[Test 11: Install Operator]
-    R --> M[after hook]
-    M --> N[Cleanup Resources]
+    A[before hook] --> B[Pre-flight TLS cleanup + Tempo auto-install]
+    B --> C[Setup & Login]
+    C --> D[Install Operators]
+    D --> E[Configure Plugins]
+    E --> F[Create UIPlugin Instance]
+    F --> G[Run Test Cases]
+    G --> T1[Test 1: Empty State]
+    G --> T2[Test 2: Traces & RBAC]
+    G --> T3[Test 3: Trace Limit]
+    G --> T4[Test 4: Cutoff Box]
+    G --> T5[Test 5: AI Analysis]
+    G --> T6[Test 6: TraceQL Query]
+    G --> T7[Test 7: Custom Time Range]
+    G --> T8[Test 8: Scatter Plot]
+    G --> T9[Test 9: Attribute Filters]
+    G --> T10[Test 10: TLS Cert Rotation]
+    G --> T11[Test 11: TLS Profiles]
+    G --> T12[Test 12: Install Operator]
+    T12 --> H[after hook]
+    H --> I[TLS cleanup + Tempo CLI reinstall]
+    I --> J[Cleanup Resources]
 ```
 
 ### Custom Command Coverage
@@ -373,11 +395,16 @@ graph TD
 - **Attribute-based filtering:** Test 9 covers switching between filter types (Span Name, Status, Span Duration), selecting values via multi-select checkboxes, entering min/max duration with debounced inputs, verifying toolbar chip labels, and clearing filters to recover unfiltered results.
 - **Custom time range selection:** Test 7 covers the Perses `TimeRangeControls` custom time range workflow — opening the DateTimeRangePicker popover, verifying its structure (calendar, Start/End fields, Apply/Cancel), applying the pre-populated absolute range, verifying URL switches from relative (`start=1h`) to absolute (`start=<ms>&end=<ms>`), testing Cancel preserves the range, and switching back to a preset.
 - **Scatter plot visualization:** Test 8 covers the ECharts-based scatter plot — verifying the container (`[data-testid="ScatterChartPanel_ScatterPlot"]`) and canvas render, testing the Hide/Show graph toggle, confirming ECharts initialization via `_echarts_instance_` attribute, triggering tooltip via mousemove, and validating canvas pixel content is non-empty.
-- **Operator not installed empty state:** Test 11 covers the full "Install Tempo operator" workflow including empty state verification ("Tempo operator isn't installed yet"), button visibility, OperatorHub redirect, and operator details page verification.
-- **OperatorHub integration:** Test 11 validates the end-to-end flow from empty state through to the OperatorHub catalog page and operator install button.
+- **ConsolePlugin re-detection fix:** `wait_for_rollout()` in `tls-helpers.sh` now annotates the `distributed-tracing-console-plugin` ConsolePlugin CR after each pod restart. The console bridge's SharedIndexInformer fires on any CR change (including metadata), triggering immediate plugin health re-check instead of waiting for the 10+ minute exponential backoff.
+- **Extended verifyTracesVisible retry window:** Increased `maxRetries` from 24 to 36 (6 min → 9 min) to provide a safety net for the console bridge backoff. In practice the ConsolePlugin annotation shortens the wait to under a minute.
+- **Test reorder — TLSCertRotation before TLSProfile:** TLS Certificate Rotation (Test 10) now runs before TLS Profile (Test 11) and before Operator Installation (Test 12). This ensures cert rotation starts with the operator at 1 replica and no tls-scanner pod present.
+- **TLS certificate rotation testing:** Test 11 verifies the plugin dynamically reloads its TLS certificate after the serving secret is deleted/regenerated by service-ca, without any pod restart. Validates pre/post serial mismatch, pod name/creationTimestamp unchanged, and /health returns HTTP 200 with the new cert.
+- **Cascade failure fixes (before/after hooks):** Added pre-flight TLS cleanup and Tempo auto-install to `before()` to recover from previous failed runs; `after()` reinstalls Tempo via CLI with a correct AllNamespaces OperatorGroup; Installation test adds a pre-flight COO scale-to-1 step.
+- **Operator not installed empty state:** Test 12 covers the full "Install Tempo operator" workflow including empty state verification ("Tempo operator isn't installed yet"), button visibility, OperatorHub redirect, and operator details page verification.
+- **OperatorHub integration:** Test 12 validates the end-to-end flow from empty state through to the OperatorHub catalog page and operator install button.
 - **TraceQL query and empty results:** Test 6 covers TraceQL query editor interaction, custom query execution (`{ name = "/test" }`), "No results found" empty state verification, "Clear all filters" button functionality, query reset to default `{}`, and trace list recovery after clearing filters.
 - **Headless mode stability:** Added deterministic waits for span bar rendering across all trace detail interactions, and page reload guards for navigation after long-running commands, reducing intermittent failures in headless Chrome.
-- **TLS profile testing:** Test 7 validates plugin backend TLS configuration (min version, cipher suites) across Intermediate, Modern, Custom cipher, and Old profiles using nmap/openssl scanning via chainsaw tests, with UI trace verification after each profile change.
+- **TLS profile testing:** Test 10 validates plugin backend TLS configuration (min version, cipher suites) across Intermediate, Modern, Custom cipher, and Old profiles using nmap/openssl scanning via chainsaw tests, with UI trace verification after each profile change.
 - **Chainsaw integration command:** `cy.runChainsawTest()` provides a reusable command for invoking chainsaw tests from Cypress, supporting single/multiple test directories, custom timeouts, and extra arguments. `cy.verifyTracesVisible()` provides quick UI-level trace verification.
 
 ### Immediate Actions (Sprint 1)
@@ -413,33 +440,34 @@ graph TD
 
 ## Feature-to-Test Mapping Matrix
 
-| Feature | Test 1 | Test 2 | Test 3 | Test 4 | Test 5 | Test 6 | Test 7 | Test 8 | Test 9 | Test 10 | Test 11 | Coverage % |
-|---------|--------|--------|--------|--------|--------|--------|--------|--------|--------|---------|---------|-----------|
-| Empty State UI | Y | - | - | - | - | - | - | - | - | - | - | 100% |
-| Install Operator Flow | - | - | - | - | - | - | - | - | - | - | Y | 100% |
-| Tempo Instance Selection | - | Y | Y | Y | Y | Y | Y | Y | Y | - | - | 100% |
-| Tenant Selection | - | Y | Y | Y | Y | Y | Y | Y | Y | - | - | 100% |
-| Time Range Selection | - | Y | - | - | Y | - | Y | Y | Y | - | - | 100% |
-| Custom Time Range | - | - | - | - | - | - | Y | - | - | - | - | 100% |
-| Service Filtering | - | Y | - | - | Y | - | - | - | - | - | - | 100% |
-| Namespace Filtering | - | - | Y | - | - | - | - | - | - | - | - | 100% |
-| Span Name Filtering | - | - | - | - | - | - | - | - | Y | - | - | 100% |
-| Status Filtering | - | - | - | - | - | - | - | - | Y | - | - | 100% |
-| Duration Filtering | - | - | - | - | - | - | - | - | Y | - | - | 100% |
-| Trace Limit Control | - | - | Y | - | - | - | - | - | - | - | - | 100% |
-| Trace Navigation | - | Y | - | - | Y | - | - | - | - | - | - | 100% |
-| Span Details | - | Y | - | Y | - | - | - | - | - | - | - | 100% |
-| Span Links | - | Y | - | - | - | - | - | - | - | - | - | 100% |
-| Breadcrumb Navigation | - | Y | - | - | - | - | - | Y | - | - | - | 100% |
-| Timeline Cutoff | - | - | - | Y | - | - | - | - | - | - | - | 100% |
-| AI Analysis | - | - | - | - | Y | - | - | - | - | - | - | 100% |
-| TraceQL Queries | - | - | - | - | - | Y | - | - | - | - | - | 100% |
-| Empty Query Results | - | - | - | - | - | Y | - | - | - | - | - | 100% |
-| Clear Filters | - | - | - | - | - | Y | - | - | Y | - | - | 100% |
-| TLS Profile Config | - | - | - | - | - | - | - | - | - | Y | - | 100% |
-| Scatter Plot | - | - | - | - | - | - | - | Y | - | - | - | 100% |
-| Error Handling | - | - | - | - | - | - | - | - | - | - | - | 0% |
-| Documentation Links | Partial | - | - | - | - | - | - | - | - | - | - | 25% |
+| Feature | Test 1 | Test 2 | Test 3 | Test 4 | Test 5 | Test 6 | Test 7 | Test 8 | Test 9 | Test 10 | Test 11 | Test 12 | Coverage % |
+|---------|--------|--------|--------|--------|--------|--------|--------|--------|--------|---------|---------|---------|-----------|
+| Empty State UI | Y | - | - | - | - | - | - | - | - | - | - | - | 100% |
+| Install Operator Flow | - | - | - | - | - | - | - | - | - | - | - | Y | 100% |
+| Tempo Instance Selection | - | Y | Y | Y | Y | Y | Y | Y | Y | - | - | - | 100% |
+| Tenant Selection | - | Y | Y | Y | Y | Y | Y | Y | Y | - | - | - | 100% |
+| Time Range Selection | - | Y | - | - | Y | - | Y | Y | Y | - | - | - | 100% |
+| Custom Time Range | - | - | - | - | - | - | Y | - | - | - | - | - | 100% |
+| Service Filtering | - | Y | - | - | Y | - | - | - | - | - | - | - | 100% |
+| Namespace Filtering | - | - | Y | - | - | - | - | - | - | - | - | - | 100% |
+| Span Name Filtering | - | - | - | - | - | - | - | - | Y | - | - | - | 100% |
+| Status Filtering | - | - | - | - | - | - | - | - | Y | - | - | - | 100% |
+| Duration Filtering | - | - | - | - | - | - | - | - | Y | - | - | - | 100% |
+| Trace Limit Control | - | - | Y | - | - | - | - | - | - | - | - | - | 100% |
+| Trace Navigation | - | Y | - | - | Y | - | - | - | - | - | - | - | 100% |
+| Span Details | - | Y | - | Y | - | - | - | - | - | - | - | - | 100% |
+| Span Links | - | Y | - | - | - | - | - | - | - | - | - | - | 100% |
+| Breadcrumb Navigation | - | Y | - | - | - | - | - | Y | - | - | - | - | 100% |
+| Timeline Cutoff | - | - | - | Y | - | - | - | - | - | - | - | - | 100% |
+| AI Analysis | - | - | - | - | Y | - | - | - | - | - | - | - | 100% |
+| TraceQL Queries | - | - | - | - | - | Y | - | - | - | - | - | - | 100% |
+| Empty Query Results | - | - | - | - | - | Y | - | - | - | - | - | - | 100% |
+| Clear Filters | - | - | - | - | - | Y | - | - | Y | - | - | - | 100% |
+| TLS Cert Rotation | - | - | - | - | - | - | - | - | - | Y | - | - | 100% |
+| TLS Profile Config | - | - | - | - | - | - | - | - | - | - | Y | - | 100% |
+| Scatter Plot | - | - | - | - | - | - | - | Y | - | - | - | - | 100% |
+| Error Handling | - | - | - | - | - | - | - | - | - | - | - | - | 0% |
+| Documentation Links | Partial | - | - | - | - | - | - | - | - | - | - | - | 25% |
 
 ---
 
@@ -545,7 +573,18 @@ graph TD
 - Toolbar filter chip labels ("between 1ms and 10s")
 - Filter clear and recovery to unfiltered state
 
-### Test 10: TLS Profile Configuration
+### Test 10: TLS Certificate Rotation
+**File:** `dt-plugin-tests.cy.ts`, `[Capability:TLSCertRotation]` test
+**Purpose:** Verify dynamic TLS certificate reload without pod restart
+**Features Covered:**
+- Pre-rotation cert serial number recording (openssl)
+- Serving secret deletion triggering service-ca regeneration
+- New cert propagation to pod volume mount (within 3 minutes)
+- Dynamic cert reload verification (new serial served by plugin)
+- Pod name and creationTimestamp unchanged (no restart occurred)
+- /health endpoint returns HTTP 200 with new certificate
+
+### Test 11: TLS Profile Configuration
 **File:** `dt-plugin-tests.cy.ts`, `[Capability:TLSProfile]` test
 **Purpose:** Verify plugin backend TLS min version and cipher suite enforcement
 **Features Covered:**
@@ -556,10 +595,13 @@ graph TD
 - Custom cipher suite verification (restricted TLS 1.2 ciphers, nmap enumeration)
 - Old profile verification (TLS 1.0/1.1/1.2/1.3, nmap)
 - Revert to default and verify Intermediate restored
-- UI trace visibility after each profile change (cy.verifyTracesVisible)
+- UI trace visibility after operator scale-down (cy.verifyTracesVisible after tls-profile-setup)
+- UI trace visibility after each profile change (cy.verifyTracesVisible after each chainsaw test)
 - Uses 6 individual chainsaw tests invoked via cy.runChainsawTest()
+- scale_down_operator() re-registers plugin in consoles/cluster spec.plugins if removed during COO shutdown
+- ConsolePlugin CR annotation in scale_down_operator() and wait_for_rollout() triggers immediate console bridge re-detection
 
-### Test 11: Install Operator
+### Test 12: Install Operator
 **File:** `dt-plugin-tests.cy.ts`, `[Capability:OperatorLifecycle]` test
 **Purpose:** Test "Install Tempo operator" button workflow
 **Features Covered:**
@@ -575,7 +617,7 @@ graph TD
 
 ## Conclusion
 
-The current test suite provides **excellent coverage** of core tracing functionality, RBAC, TraceQL queries, AI integration, custom time range selection, scatter plot visualization, attribute-based filtering, TLS profile configuration, and operator installation workflows. The suite is validated on OCP 4.22 nightly with backwards-compatible handling of the new welcome modal. Test 7 covers custom time range selection, Test 8 covers scatter plot visualization, Test 9 covers attribute-based filtering, and Test 10 covers TLS profile configuration. The main remaining gaps are in:
+The current test suite provides **excellent coverage** of core tracing functionality, RBAC, TraceQL queries, AI integration, custom time range selection, scatter plot visualization, attribute-based filtering, TLS profile configuration, TLS certificate rotation, and operator installation workflows. The suite contains 12 main test cases validated on OCP 4.22 nightly with backwards-compatible handling of the new welcome modal. Test 7 covers custom time range selection, Test 8 covers scatter plot visualization, Test 9 covers attribute-based filtering, Test 10 covers TLS certificate rotation without pod restart, Test 11 covers TLS profile configuration, and Test 12 covers the operator installation flow. The main remaining gaps are in:
 1. **Error handling scenarios**
 2. **UI edge cases**
 

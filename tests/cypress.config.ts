@@ -90,7 +90,7 @@ export default defineConfig({
     },
     supportFile: './cypress/support/e2e.js',
     specPattern: 'e2e/**/*.cy.{js,jsx,ts,tsx}',
-    numTestsKeptInMemory: 1,
+    numTestsKeptInMemory: 0,
     testIsolation: false,
     experimentalModifyObstructiveThirdPartyCode: true,
     experimentalOriginDependencies: true,

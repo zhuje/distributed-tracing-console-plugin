@@ -20,6 +20,34 @@ scale_down_operator() {
   kubectl scale deployment "$OPERATOR_DEPLOYMENT" -n "$NAMESPACE" --replicas=0
   kubectl rollout status deployment/"$OPERATOR_DEPLOYMENT" -n "$NAMESPACE" --timeout=60s
   echo "PASS: $OPERATOR_DEPLOYMENT scaled to 0"
+
+  # Brief pause to let any in-flight shutdown reconciliation complete before
+  # we inspect and repair console registration.
+  sleep 5
+
+  # COO's graceful shutdown may deregister the plugin from
+  # consoles.operator.openshift.io/cluster spec.plugins, making the tracing UI
+  # disappear from the OpenShift console even though the plugin pod is still running.
+  # Re-add the plugin to spec.plugins if it is missing.
+  echo "Verifying console plugin registration after operator scale-down..."
+  CURRENT_PLUGINS=$(kubectl get consoles.operator.openshift.io cluster \
+    -o json 2>/dev/null | jq -c '.spec.plugins // []')
+  if ! echo "$CURRENT_PLUGINS" | grep -q "distributed-tracing-console-plugin"; then
+    echo "Plugin missing from consoles/cluster spec.plugins — re-registering..."
+    NEW_PLUGINS=$(echo "$CURRENT_PLUGINS" | jq -c '. + ["distributed-tracing-console-plugin"]')
+    kubectl patch consoles.operator.openshift.io cluster --type=merge \
+      -p "{\"spec\":{\"plugins\":$NEW_PLUGINS}}" 2>/dev/null || \
+      echo "NOTE: Console spec.plugins patch skipped (non-fatal)"
+  else
+    echo "Plugin already present in consoles/cluster spec.plugins"
+  fi
+
+  # Annotate the ConsolePlugin CR so the OpenShift console bridge immediately
+  # re-checks the plugin health instead of waiting for its backoff timer.
+  echo "Triggering console plugin re-detection via ConsolePlugin annotation..."
+  kubectl annotate consoleplugin distributed-tracing-console-plugin \
+    "reload-timestamp=$(date +%s)" --overwrite 2>/dev/null || \
+    echo "NOTE: ConsolePlugin annotation skipped (non-fatal)"
 }
 
 # Scale the observability-operator back up.
@@ -58,6 +86,14 @@ wait_for_rollout() {
   # Wait for old pods to terminate before checking readiness
   sleep 10
   kubectl wait --for=condition=Ready pods -l "$LABEL_SELECTOR" -n "$NAMESPACE" --timeout=120s
+  # Annotate the ConsolePlugin CR so the OpenShift console bridge immediately
+  # re-checks the plugin health instead of waiting for its backoff timer.
+  # Without this, the console can take 10+ minutes to rediscover the plugin after
+  # a pod restart, causing verifyTracesVisible to time out.
+  echo "Triggering console plugin re-detection via ConsolePlugin annotation..."
+  kubectl annotate consoleplugin distributed-tracing-console-plugin \
+    "reload-timestamp=$(date +%s)" --overwrite 2>/dev/null || \
+    echo "NOTE: ConsolePlugin annotation skipped (non-fatal)"
 }
 
 # Patch the deployment CLI args with TLS settings, mirroring what COO does when it reads

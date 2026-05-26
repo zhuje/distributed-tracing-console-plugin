@@ -80,7 +80,7 @@ The test suite includes comprehensive PatternFly-aware custom commands:
 - **Trace testing**: `cy.muiTraceLink()`, `cy.muiSpanBar()`, `cy.muiTraceAttributes()`
 - **Bulk validation**: Commands for validating multiple trace attributes efficiently
 - **Chainsaw integration**: `cy.runChainsawTest(testDirs, description, options?)` runs chainsaw tests from Cypress; accepts a single directory name, an array of directories, or full paths starting with `./`; supports optional `timeout` and `extraArgs`
-- **Trace UI verification**: `cy.verifyTracesVisible(tempoInstance, tenant)` navigates to traces page and asserts traces are visible for the given Tempo instance and tenant; retries every 15 s for up to 9 minutes to handle the console bridge's backoff delay after a pod restart
+- **Trace UI verification**: `cy.verifyTracesVisible(tempoInstance, tenant)` navigates to traces page and asserts traces are visible for the given Tempo instance and tenant; retries every 15 s for up to 4 minutes to handle the console bridge's backoff delay after a pod restart
 - **OCP compatibility**: `cy.dismissWelcomeModal()` handles the OCP 4.22+ "Welcome to the new OpenShift experience!" modal overlay
 
 #### Test Types

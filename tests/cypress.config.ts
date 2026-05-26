@@ -55,6 +55,12 @@ export default defineConfig({
             launchOptions.args.push('--no-sandbox'); // Often needed in containers, understand security implications
             launchOptions.args.push('--disable-dev-shm-usage'); // Crucial for Docker to prevent crashes
             launchOptions.args.push('--window-size=1920,1080');
+            // Reduce memory pressure for long test runs (30+ minutes, many page reloads):
+            launchOptions.args.push('--disable-features=BackForwardCache'); // Don't accumulate BF cache memory
+            launchOptions.args.push('--aggressive-cache-discard'); // Discard cached resources aggressively
+            launchOptions.args.push('--disable-background-networking'); // Reduce background network overhead
+            launchOptions.args.push('--disable-extensions'); // Reduce renderer overhead
+            launchOptions.args.push('--js-flags=--max-old-space-size=4096'); // Increase JS heap limit
           }
 
           return launchOptions;

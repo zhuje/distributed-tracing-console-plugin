@@ -809,11 +809,13 @@ EOF`,
 
     cy.log('Set trace limit to 50 (but verify actual available count)');
     cy.menuToggleContains('20');
+    cy.wait(500);
     cy.pfSelectMenuItem('50').click();
     cy.verifyTraceCount(50);
 
     cy.log('Set trace limit to 10 and verify fewer traces shown');
     cy.menuToggleContains('50');
+    cy.wait(500);
     cy.pfSelectMenuItem('20').click();
     cy.verifyTraceCount(20);
   });
@@ -1272,14 +1274,6 @@ EOF`,
   });
 
   it('[Capability:UIPlugin][Capability:TLSProfile] Test TLS profile configuration on plugin endpoints', function () {
-    // Force a full page reload before the long chainsaw tests begin. After 36+
-    // minutes of prior tests the OpenShift console app accumulates ~4 GB of live
-    // V8 objects that GC cannot free. cy.visit() destroys the current page and
-    // recreates a fresh one, clearing the heap before the OOM threshold is hit.
-    cy.visit('/observe/traces');
-    cy.dismissWelcomeModal();
-    cy.get('body').should('be.visible');
-
     // Setup: install tls-scanner and scale down operator.
     // scale_down_operator() in tls-helpers.sh re-registers the plugin in
     // consoles/cluster spec.plugins and annotates the ConsolePlugin CR so the

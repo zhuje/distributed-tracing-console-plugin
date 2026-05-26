@@ -32,6 +32,13 @@ const LIGHTSPEED = {
 
 describe('tracing-uiplugin', () => {
   before(() => {
+    // Always clean up TLS profile test leftovers first, in case a previous run was interrupted
+    cy.log('Pre-flight TLS cleanup: restore operator to 1 replica and remove tls-scanner resources');
+    cy.exec(
+      `oc scale deployment observability-operator -n ${DTP.namespace} --replicas=1 --kubeconfig ${Cypress.env('KUBECONFIG_PATH')} 2>/dev/null; oc delete pod tls-scanner -n ${DTP.namespace} --force --grace-period=0 --kubeconfig ${Cypress.env('KUBECONFIG_PATH')} 2>/dev/null; oc delete clusterrolebinding tls-scanner-pods-reader-dt-plugin --kubeconfig ${Cypress.env('KUBECONFIG_PATH')} 2>/dev/null; oc delete clusterrole tls-scanner-pods-reader-dt-plugin --kubeconfig ${Cypress.env('KUBECONFIG_PATH')} 2>/dev/null; oc delete scc tls-scanner-scc-dt-plugin --kubeconfig ${Cypress.env('KUBECONFIG_PATH')} 2>/dev/null; oc delete sa tls-scanner -n ${DTP.namespace} --kubeconfig ${Cypress.env('KUBECONFIG_PATH')} 2>/dev/null; echo "Pre-flight TLS cleanup done"`,
+      { failOnNonZeroExit: false, timeout: 60000 },
+    );
+
     // Cleanup any existing resources from interrupted tests
     cy.log('Cleanup any existing resources from previous interrupted tests');
     if (Cypress.env('SKIP_COO_INSTALL')) {
@@ -58,6 +65,41 @@ describe('tracing-uiplugin', () => {
           failOnNonZeroExit: false
         }
       );
+
+      // Verify Tempo Operator is installed; install via CLI if missing.
+      // This prevents cascade failures when the after() hook from a previous run failed to reinstall it.
+      cy.log('Verify Tempo Operator is installed, install via CLI if missing');
+      cy.exec(
+        `oc get csv -l operators.coreos.com/tempo-product.${TEMPO.namespace} -n ${TEMPO.namespace} --kubeconfig ${Cypress.env('KUBECONFIG_PATH')} -o jsonpath='{.items[0].status.phase}' 2>/dev/null || echo "not-found"`,
+        { failOnNonZeroExit: false },
+      ).then((result) => {
+        const phase = result.stdout.trim();
+        cy.log(`Tempo Operator CSV phase: '${phase}'`);
+        if (phase !== 'Succeeded') {
+          cy.log(`Tempo Operator not ready (phase: '${phase}'), installing via CLI...`);
+          cy.exec(
+            `oc create namespace ${TEMPO.namespace} --kubeconfig ${Cypress.env('KUBECONFIG_PATH')} 2>/dev/null || true`,
+            { failOnNonZeroExit: false },
+          );
+          cy.exec(
+            `oc label namespace ${TEMPO.namespace} openshift.io/cluster-monitoring=true --overwrite --kubeconfig ${Cypress.env('KUBECONFIG_PATH')} 2>/dev/null || true`,
+            { failOnNonZeroExit: false },
+          );
+          cy.exec(
+            `echo '{"apiVersion":"operators.coreos.com/v1","kind":"OperatorGroup","metadata":{"name":"${TEMPO.namespace}","namespace":"${TEMPO.namespace}"},"spec":{"upgradeStrategy":"Default"}}' | oc apply -f - --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
+            { failOnNonZeroExit: false },
+          );
+          cy.exec(
+            `echo '{"apiVersion":"operators.coreos.com/v1alpha1","kind":"Subscription","metadata":{"name":"tempo-product","namespace":"${TEMPO.namespace}"},"spec":{"channel":"stable","name":"tempo-product","source":"redhat-operators","sourceNamespace":"openshift-marketplace","installPlanApproval":"Automatic"}}' | oc apply -f - --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
+            { failOnNonZeroExit: false },
+          );
+          cy.exec(
+            `for i in $(seq 1 90); do PHASE=$(oc get csv -l operators.coreos.com/tempo-product.${TEMPO.namespace} -n ${TEMPO.namespace} --kubeconfig ${Cypress.env('KUBECONFIG_PATH')} -o jsonpath='{.items[0].status.phase}' 2>/dev/null); echo "CSV phase: $PHASE (attempt $i/90)"; if [ "$PHASE" = "Succeeded" ]; then exit 0; fi; sleep 5; done; echo "Tempo Operator did not reach Succeeded in 7.5 minutes"; exit 1`,
+            { timeout: 540000, failOnNonZeroExit: false },
+          );
+          cy.log('Tempo Operator installation completed');
+        }
+      });
 
       // Only remove cluster-admin role if provider is not kube:admin
       if (Cypress.env('LOGIN_IDP') !== 'kube:admin') {
@@ -315,9 +357,9 @@ EOF`,
     cy.log('Create Distributed Tracing UI Plugin instance.');
     cy.exec(`oc apply -f ./fixtures/tracing-ui-plugin.yaml --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
     cy.exec(
-      `sleep 15 && oc wait --for=condition=Ready pods --selector=app.kubernetes.io/instance=distributed-tracing -n ${DTP.namespace} --timeout=60s --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
+      `for i in $(seq 1 36); do POD=$(oc get pods --selector=app.kubernetes.io/instance=distributed-tracing -n ${DTP.namespace} --kubeconfig ${Cypress.env('KUBECONFIG_PATH')} -o name 2>/dev/null | head -1); if [ -n "$POD" ]; then oc wait --for=condition=Ready $POD -n ${DTP.namespace} --timeout=60s --kubeconfig ${Cypress.env('KUBECONFIG_PATH')} && exit 0; fi; echo "Pod not found yet, attempt $i/36, waiting 5s..."; sleep 5; done; echo "Pod not found after 3 minutes"; exit 1`,
       {
-        timeout: 80000,
+        timeout: 240000,
         failOnNonZeroExit: true
       }
     ).then((result) => {
@@ -356,22 +398,45 @@ EOF`,
   });
 
   after(() => {
+    // Always clean up TLS profile test leftovers in case the TLS profile test failed mid-way.
+    // This ensures the operator is running and tls-scanner is gone before other cleanup proceeds.
+    cy.log('TLS profile cleanup: scale operator back to 1 replica and remove tls-scanner resources');
+    cy.exec(
+      `oc scale deployment observability-operator -n ${DTP.namespace} --replicas=1 --kubeconfig ${Cypress.env('KUBECONFIG_PATH')} 2>/dev/null; oc delete pod tls-scanner -n ${DTP.namespace} --force --grace-period=0 --kubeconfig ${Cypress.env('KUBECONFIG_PATH')} 2>/dev/null; oc delete clusterrolebinding tls-scanner-pods-reader-dt-plugin --kubeconfig ${Cypress.env('KUBECONFIG_PATH')} 2>/dev/null; oc delete clusterrole tls-scanner-pods-reader-dt-plugin --kubeconfig ${Cypress.env('KUBECONFIG_PATH')} 2>/dev/null; oc delete scc tls-scanner-scc-dt-plugin --kubeconfig ${Cypress.env('KUBECONFIG_PATH')} 2>/dev/null; oc delete sa tls-scanner -n ${DTP.namespace} --kubeconfig ${Cypress.env('KUBECONFIG_PATH')} 2>/dev/null; echo "TLS cleanup done"`,
+      { failOnNonZeroExit: false, timeout: 60000 },
+    );
+
     if (Cypress.env('SKIP_COO_INSTALL')) {
-      cy.log('Reinstall Tempo Operator');
+      // Reinstall Tempo via CLI if the Installation test deleted it. CLI-based reinstall is
+      // used here because the console may be in a bad state after a TLS profile test failure.
+      cy.log('Reinstall Tempo Operator via CLI if it was deleted by the Installation test');
       cy.exec(
         `oc get namespace ${TEMPO.namespace} --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
-        { failOnNonZeroExit: false }
+        { failOnNonZeroExit: false },
       ).then((result) => {
         if (result.code !== 0) {
-          cy.log('Tempo Operator namespace not found, reinstalling...');
-          operatorHubPage.installOperator(TEMPO.packageName, 'redhat-operators');
-          cy.get('.co-clusterserviceversion-install__heading', { timeout: 5 * 60 * 1000 }).should(($el) => {
-            const text = $el.text();
-            expect(text).to.satisfy((t: string) =>
-              t.includes('ready for use') || t.includes('Operator installed successfully')
-            );
-          });
-          cy.log('Tempo Operator reinstalled successfully');
+          cy.log('Tempo Operator namespace not found, reinstalling via CLI...');
+          cy.exec(
+            `oc create namespace ${TEMPO.namespace} --kubeconfig ${Cypress.env('KUBECONFIG_PATH')} 2>/dev/null || true`,
+            { failOnNonZeroExit: false },
+          );
+          cy.exec(
+            `oc label namespace ${TEMPO.namespace} openshift.io/cluster-monitoring=true --overwrite --kubeconfig ${Cypress.env('KUBECONFIG_PATH')} 2>/dev/null || true`,
+            { failOnNonZeroExit: false },
+          );
+          cy.exec(
+            `echo '{"apiVersion":"operators.coreos.com/v1","kind":"OperatorGroup","metadata":{"name":"${TEMPO.namespace}","namespace":"${TEMPO.namespace}"},"spec":{"upgradeStrategy":"Default"}}' | oc apply -f - --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
+            { failOnNonZeroExit: false },
+          );
+          cy.exec(
+            `echo '{"apiVersion":"operators.coreos.com/v1alpha1","kind":"Subscription","metadata":{"name":"tempo-product","namespace":"${TEMPO.namespace}"},"spec":{"channel":"stable","name":"tempo-product","source":"redhat-operators","sourceNamespace":"openshift-marketplace","installPlanApproval":"Automatic"}}' | oc apply -f - --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
+            { failOnNonZeroExit: false },
+          );
+          cy.exec(
+            `for i in $(seq 1 90); do PHASE=$(oc get csv -l operators.coreos.com/tempo-product.${TEMPO.namespace} -n ${TEMPO.namespace} --kubeconfig ${Cypress.env('KUBECONFIG_PATH')} -o jsonpath='{.items[0].status.phase}' 2>/dev/null); echo "CSV phase: $PHASE (attempt $i/90)"; if [ "$PHASE" = "Succeeded" ]; then exit 0; fi; sleep 5; done; echo "Tempo Operator CSV did not reach Succeeded in 7.5 minutes"; exit 1`,
+            { timeout: 540000, failOnNonZeroExit: false },
+          );
+          cy.log('Tempo Operator reinstalled successfully via CLI');
         } else {
           cy.log('Tempo Operator namespace exists, skipping reinstall');
         }
@@ -744,11 +809,13 @@ EOF`,
 
     cy.log('Set trace limit to 50 (but verify actual available count)');
     cy.menuToggleContains('20');
+    cy.wait(500);
     cy.pfSelectMenuItem('50').click();
     cy.verifyTraceCount(50);
 
     cy.log('Set trace limit to 10 and verify fewer traces shown');
     cy.menuToggleContains('50');
+    cy.wait(500);
     cy.pfSelectMenuItem('20').click();
     cy.verifyTraceCount(20);
   });
@@ -1207,8 +1274,15 @@ EOF`,
   });
 
   it('[Capability:UIPlugin][Capability:TLSProfile] Test TLS profile configuration on plugin endpoints', function () {
-    // Setup: install tls-scanner and scale down operator
+    // Setup: install tls-scanner and scale down operator.
+    // scale_down_operator() in tls-helpers.sh re-registers the plugin in
+    // consoles/cluster spec.plugins and annotates the ConsolePlugin CR so the
+    // console bridge re-checks the plugin immediately after the operator stops.
     cy.runChainsawTest('tls-profile-setup', 'TLS profile setup');
+    // Verify the plugin is still accessible after the operator scale-down before
+    // proceeding with profile-specific changes. Fails fast if scale_down_operator()
+    // did not fully restore console registration.
+    cy.verifyTracesVisible('chainsaw-rbac / simplst', 'dev');
 
     // Test default Intermediate profile (TLS 1.2 + TLS 1.3)
     cy.runChainsawTest('tls-profile-intermediate', 'Intermediate TLS profile');
@@ -1232,6 +1306,18 @@ EOF`,
   });
 
   it('[Capability:OperatorLifecycle][Capability:Installation] Test "Install Tempo operator" if operator is not installed', () => {
+    // Pre-flight: scale COO operator to 1 in case TLSProfile test left it at 0 replicas.
+    // Without this, the plugin pod is unavailable and the page shows 404.
+    cy.log('Pre-flight: Ensure COO operator is running at 1 replica');
+    cy.exec(
+      `oc scale deployment observability-operator -n ${DTP.namespace} --replicas=1 --kubeconfig ${Cypress.env('KUBECONFIG_PATH')} 2>/dev/null || true; echo "done"`,
+      { failOnNonZeroExit: false, timeout: 30000 },
+    );
+    cy.exec(
+      `for i in $(seq 1 24); do POD=$(oc get pods --selector=app.kubernetes.io/instance=distributed-tracing -n ${DTP.namespace} --kubeconfig ${Cypress.env('KUBECONFIG_PATH')} -o name 2>/dev/null | head -1); if [ -n "$POD" ]; then oc wait --for=condition=Ready $POD -n ${DTP.namespace} --timeout=30s --kubeconfig ${Cypress.env('KUBECONFIG_PATH')} 2>/dev/null && exit 0; fi; echo "Plugin pod not ready yet (attempt $i/24), waiting 5s..."; sleep 5; done; echo "Plugin pod check done"; exit 0`,
+      { failOnNonZeroExit: false, timeout: 150000 },
+    );
+
     cy.log('Delete Chainsaw test namespaces and resources');
     cy.exec(
       `for ns in $(oc get projects -o name --kubeconfig ${Cypress.env('KUBECONFIG_PATH')} | grep "chainsaw-" | sed 's|project.project.openshift.io/||'); do oc get opentelemetrycollectors.opentelemetry.io,tempostacks.tempo.grafana.com,tempomonolithics.tempo.grafana.com,pvc -n $ns -o name --kubeconfig ${Cypress.env('KUBECONFIG_PATH')} 2>/dev/null | xargs --no-run-if-empty -I {} oc patch {} -n $ns --type merge -p '{"metadata":{"finalizers":[]}}' --kubeconfig ${Cypress.env('KUBECONFIG_PATH')} 2>/dev/null || true; oc delete project $ns --kubeconfig ${Cypress.env('KUBECONFIG_PATH')} || true; done`,
@@ -1250,12 +1336,29 @@ EOF`,
     cy.log('Delete Tempo CustomResourceDefinitions');
     cy.executeAndDelete(`oc delete customresourcedefinitions.apiextensions.k8s.io tempomonolithics.tempo.grafana.com tempostacks.tempo.grafana.com --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
 
-    cy.log('Navigate to the observe/traces page');
-    cy.visit('/observe/traces');
-    cy.url().should('include', '/observe/traces');
-    cy.dismissWelcomeModal();
-    cy.get('body').should('be.visible');
-    cy.wait(3000);
+    cy.log('Navigate to the observe/traces page, retrying until plugin shows "Tempo operator isn\'t installed yet"');
+    // After deleting Tempo CRDs the plugin shows the correct empty state. If the console
+    // hasn't refreshed its plugin routes (e.g. after TLSProfile left operator at 0 replicas),
+    // the page may show 404. Retry until the plugin page loads correctly.
+    const retryIntervalInstallMs = 10000;
+    const maxInstallRetries = 18; // 3 minutes
+    const waitForInstallationPage = (retriesLeft: number) => {
+      cy.visit('/observe/traces');
+      cy.url().should('include', '/observe/traces');
+      cy.dismissWelcomeModal();
+      cy.get('body').then(($body) => {
+        if ($body.text().includes('Tempo operator isn\'t installed yet')) {
+          cy.log('Plugin shows correct "Tempo operator isn\'t installed yet" state');
+        } else if (retriesLeft > 0) {
+          cy.log(`Plugin not ready yet (body: "${$body.text().substring(0, 100)}..."), retrying in ${retryIntervalInstallMs / 1000}s (${retriesLeft} left)...`);
+          cy.wait(retryIntervalInstallMs);
+          waitForInstallationPage(retriesLeft - 1);
+        } else {
+          cy.log('WARNING: Plugin did not show expected state after maximum retries');
+        }
+      });
+    };
+    waitForInstallationPage(maxInstallRetries);
 
     cy.log('Verify empty state shows "Tempo operator isn\'t installed yet"');
     cy.pfEmptyState().within(() => {

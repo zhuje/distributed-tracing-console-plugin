@@ -914,10 +914,52 @@ Cypress.Commands.add(
   'verifyTracesVisible',
   (tempoInstance: string, tenant: string) => {
     cy.log('Verify traces are visible in the UI');
+
+    // After TLS profile changes the plugin pod may have restarted. The web console
+    // removes the plugin route until its health polling re-detects the plugin.
+    // Reload every 15 s for up to 4 minutes to allow the console to recover.
+    const retryIntervalMs = 15000;
+    const maxRetries = 16; // 4 minutes — console backoff can be long after pod restart; annotation in tls-helpers.sh shortens this in practice
+
+    const retryUntilReady = (attemptsLeft: number) => {
+      // Poll the live DOM every 500 ms for up to retryIntervalMs using Cypress.Promise.
+      // cy.get('body').then($body => $body.find(...)) takes a static snapshot immediately
+      // after page load, before React has mounted plugin components — causing false misses
+      // even when the plugin is ready. Active polling catches the element as soon as it
+      // appears in the DOM.
+      cy.window({ timeout: 20000 }).then((win) => {
+        return new Cypress.Promise<boolean>((resolve) => {
+          const deadline = Date.now() + retryIntervalMs;
+          const poll = () => {
+            if (win.document.querySelector('input[placeholder="Select a Tempo instance"]')) {
+              resolve(true);
+            } else if (Date.now() < deadline) {
+              setTimeout(poll, 500);
+            } else {
+              resolve(false);
+            }
+          };
+          poll();
+        });
+      }).then((found) => {
+        if (found) {
+          cy.log('Plugin is ready');
+        } else if (attemptsLeft > 0) {
+          cy.log(`Plugin not ready, re-navigating (${attemptsLeft} attempts left)...`);
+          cy.visit('/observe/traces');
+          cy.url().should('include', '/observe/traces');
+          cy.dismissWelcomeModal();
+          retryUntilReady(attemptsLeft - 1);
+        }
+      });
+    };
+
     cy.visit('/observe/traces');
     cy.url().should('include', '/observe/traces');
     cy.dismissWelcomeModal();
-    cy.get('input[placeholder="Select a Tempo instance"]', { timeout: 30000 }).should('exist');
+    retryUntilReady(maxRetries);
+
+    cy.get('input[placeholder="Select a Tempo instance"]', { timeout: 60000 }).should('exist');
     cy.pfTypeahead('Select a Tempo instance').click();
     cy.pfSelectMenuItem(tempoInstance).click();
     cy.pfTypeahead('Select a tenant').click();

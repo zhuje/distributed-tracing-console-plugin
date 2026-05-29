@@ -104,8 +104,11 @@ npx cypress run
 # Run specific test files
 npx cypress run --spec "e2e/dt-plugin-tests.cy.ts"
 
-# Skip debug files during CI runs
-npx cypress run --ignore-pattern "**/*debug*.cy.ts"
+# Run with Chrome browser (required for OCP 4.22+ plugin compatibility)
+npx cypress run --browser chrome --spec "e2e/dt-plugin-tests.cy.ts"
+
+# Skip debug files during CI runs (use --spec to exclude debug files)
+npx cypress run --spec "e2e/dt-plugin-tests.cy.ts"
 ```
 
 ## Test Architecture & Best Practices
@@ -205,6 +208,18 @@ for test in tls-profile-setup tls-profile-intermediate tls-profile-modern tls-pr
   chainsaw test --config ./fixtures/.chainsaw.yaml --skip-delete ./fixtures/chainsaw-tests/$test
 done
 ```
+
+### New Feature Tests (Perses 0.54 / PR bump-perses-0.54.0)
+
+Three new tests validate features introduced in Perses 0.54.0-beta.1:
+
+| Test | Capability Tag | PR |
+|------|---------------|-----|
+| Gantt chart span search | `[Capability:GanttSearch]` | [perses/plugins#661](https://github.com/perses/plugins/pull/661) |
+| Gantt chart attribute pane resizing | `[Capability:AttributePaneResize]` | [perses/plugins#636](https://github.com/perses/plugins/pull/636) |
+| Trace table Spans/Start time column word wrap | `[Capability:TraceTableColumns]` | [perses/plugins#655](https://github.com/perses/plugins/pull/655) |
+
+> **OCP version requirement:** The plugin SDK (`@openshift-console/dynamic-plugin-sdk: ^4.22.0-prerelease.2`) requires **OCP 4.22+**. Tests will fail on OCP 4.21 with `__load_plugin_entry__ is not defined` because the 4.21 console does not register the plugin handler for 4.22-prerelease builds.
 
 ### Chainsaw TLS Certificate Rotation Testing
 The chainsaw test in `fixtures/chainsaw-tests/cert-rotation/` verifies that the plugin backend dynamically reloads its TLS certificate after the serving secret is rotated, **without requiring a pod restart**. The test:

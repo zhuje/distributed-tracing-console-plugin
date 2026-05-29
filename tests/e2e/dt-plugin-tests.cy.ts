@@ -52,9 +52,19 @@ describe('tracing-uiplugin', () => {
         `oc delete secret openai-token -n ${LIGHTSPEED.namespace} --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
       );
 
-      cy.log('Delete Distributed Tracing UI Plugin instance if exists.');
-      cy.executeAndDelete(
-        `oc delete ${DTP.config.kind} ${DTP.config.name} --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
+      cy.log('Ensure UIPlugin exists — create if missing, leave in place if already running.');
+      // Avoid deleting and recreating the UIPlugin: the delete/recreate cycle causes the
+      // console browser cache to have a stale plugin URL that returns 404, triggering
+      // "__load_plugin_entry__ is not defined" during login. Instead, idempotently apply
+      // the UIPlugin so it is always present before the test suite starts.
+      cy.exec(
+        `echo '{"apiVersion":"observability.openshift.io/v1alpha1","kind":"UIPlugin","metadata":{"name":"${DTP.config.name}"},"spec":{"type":"DistributedTracing"}}' | oc apply -f - --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
+        { failOnNonZeroExit: false, timeout: 30000 },
+      );
+      // Wait for COO to reconcile and the plugin pod to become Ready before visiting the console.
+      cy.exec(
+        `for i in $(seq 1 24); do oc get deployment distributed-tracing -n ${DTP.namespace} --kubeconfig ${Cypress.env('KUBECONFIG_PATH')} >/dev/null 2>&1 && break || sleep 5; done; oc rollout status deployment/distributed-tracing -n ${DTP.namespace} --kubeconfig ${Cypress.env('KUBECONFIG_PATH')} --timeout=120s`,
+        { failOnNonZeroExit: false, timeout: 180000 },
       );
 
       cy.log('Delete Chainsaw namespaces if they exist.');
@@ -1267,6 +1277,142 @@ EOF`,
 
     cy.log('Verify traces are visible without any filters');
     cy.get('a.MuiLink-root', { timeout: 30000 }).should('be.visible');
+  });
+
+  it('[Capability:UIPlugin][Capability:GanttSearch] Test Gantt chart span search functionality', () => {
+    cy.log('Navigate to a trace detail page to access the Gantt chart');
+    cy.setupTracePage('chainsaw-rbac / simplst', 'dev', 'Last 1 hour');
+    cy.get('a.MuiLink-root', { timeout: 30000 }).should('be.visible');
+    cy.muiFirstTraceLink().click();
+    cy.findByTestId('span-duration-bar', { timeout: 30000 }).should('have.length.greaterThan', 0);
+
+    cy.log('Read root span service name from trace header for use as search query');
+    cy.get('.MuiTypography-h3', { timeout: 10000 })
+      .first()
+      .invoke('text')
+      .then((headerText) => {
+        // Header format: "serviceName: spanName (duration)"
+        const serviceName = headerText.split(':')[0].trim();
+        cy.log(`Using service name "${serviceName}" as search query`);
+
+        cy.log('Click Toggle search button (magnify icon) to reveal the search bar');
+        cy.get('button[aria-label="Toggle search"]').click();
+        cy.get('input[placeholder="Search spans..."]', { timeout: 5000 }).should('be.visible');
+
+        cy.log('Type service name — all spans from this service should match');
+        cy.get('input[placeholder="Search spans..."]').type(serviceName);
+
+        cy.log('Verify match counter shows at least one result (not 0/0)');
+        cy.get('input[placeholder="Search spans..."]')
+          .closest('.MuiInputBase-root')
+          .find('.MuiInputAdornment-root')
+          .should('be.visible')
+          .invoke('text')
+          .should('match', /^[1-9]\d*\/\d+$/);
+
+        cy.log('Next match button navigates to next matching span');
+        cy.get('button[aria-label="Next match"]').should('be.enabled').click();
+        cy.get('input[placeholder="Search spans..."]')
+          .closest('.MuiInputBase-root')
+          .find('.MuiInputAdornment-root')
+          .invoke('text')
+          .should('match', /^\d+\/\d+$/);
+
+        cy.log('Previous match button navigates back');
+        cy.get('button[aria-label="Previous match"]').should('be.enabled').click();
+
+        cy.log('Searching for non-existent text shows 0/0 and disables navigation buttons');
+        cy.get('button[aria-label="Clear search"]').click();
+        cy.get('input[placeholder="Search spans..."]').type('__nonexistent_span_xyz__');
+        cy.get('input[placeholder="Search spans..."]')
+          .closest('.MuiInputBase-root')
+          .find('.MuiInputAdornment-root')
+          .should('be.visible')
+          .and('contain.text', '0/0');
+        cy.get('button[aria-label="Next match"]').should('be.disabled');
+        cy.get('button[aria-label="Previous match"]').should('be.disabled');
+
+        cy.log('Clear search button resets the input to empty');
+        cy.get('button[aria-label="Clear search"]').click();
+        cy.get('input[placeholder="Search spans..."]').should('have.value', '');
+
+        cy.log('Clicking Toggle search again hides the search bar');
+        cy.get('button[aria-label="Toggle search"]').click();
+        cy.get('input[placeholder="Search spans..."]').should('not.exist');
+      });
+  });
+
+  it('[Capability:UIPlugin][Capability:AttributePaneResize] Test Gantt chart attribute pane resizing', () => {
+    cy.log('Navigate to trace details and open the span attribute pane');
+    cy.setupTracePage('chainsaw-rbac / simplst', 'dev', 'Last 1 hour');
+    cy.navigateToTraceDetails();
+
+    cy.log('Verify the attribute pane is open (detail Box has inline min-width style)');
+    // The detail pane Box only renders when a span is selected, with an inline
+    // style "min-width: <n>%" set by TracingGanttChart when a span is clicked.
+    cy.get('[style*="min-width"]', { timeout: 10000 }).first().should('be.visible');
+
+    cy.log('Record initial pane width and drag the ResizableDivider to expand it');
+    cy.get('[style*="min-width"]').first().then(($detailPane) => {
+      const initialWidth = $detailPane[0].getBoundingClientRect().width;
+      cy.log(`Initial attribute pane width: ${initialWidth}px`);
+
+      // The ResizableDivider is the previousElementSibling of the detail pane Box.
+      // mousemove is captured on window (attached after mousedown sets isResizing=true),
+      // but synthetic events bubble from the element up to window.
+      const resizerEl = $detailPane[0].previousElementSibling as HTMLElement;
+      const resizerRect = resizerEl.getBoundingClientRect();
+      const ganttRect = resizerEl.parentElement!.getBoundingClientRect();
+
+      // Target 40% from the left edge — valid within the [5%, 95%] clamp.
+      // This moves the divider left so the detail pane grows from ~18% to ~60%.
+      const targetX = ganttRect.left + ganttRect.width * 0.4;
+
+      cy.wrap(resizerEl)
+        .trigger('mousedown', { which: 1, force: true })
+        .wait(100) // wait for React state update: isResizing→true adds mousemove to window
+        .trigger('mousemove', {
+          clientX: targetX,
+          clientY: resizerRect.top + resizerRect.height / 2,
+          force: true,
+        })
+        .wait(100)
+        .trigger('mouseup', { force: true });
+
+      cy.wait(500); // allow React state to settle after drag
+
+      cy.log('Verify the attribute pane width increased after drag');
+      cy.get('[style*="min-width"]').first().then(($resizedPane) => {
+        const newWidth = $resizedPane[0].getBoundingClientRect().width;
+        cy.log(`Attribute pane expanded: ${initialWidth}px → ${newWidth}px`);
+        expect(newWidth).to.be.greaterThan(initialWidth);
+      });
+    });
+  });
+
+  it('[Capability:UIPlugin][Capability:TraceTableColumns] Test trace table Spans and Start time column rendering with word wrap', () => {
+    cy.log('Set up the traces page and wait for trace data to load');
+    cy.setupTracePage('chainsaw-rbac / simplst', 'dev', 'Last 1 hour');
+    cy.get('a.MuiLink-root', { timeout: 30000 }).should('be.visible');
+
+    cy.log('Verify the Spans column header is present');
+    cy.contains('.MuiDataGrid-columnHeaderTitle', 'Spans').should('be.visible');
+
+    cy.log('Verify Spans cells show span count text wrapped in a flex Box container');
+    // PR #655 changed the Spans cell renderer from a bare React Fragment (<>...</>)
+    // to a Box with flexWrap:wrap so the span count and error chip wrap on narrow columns.
+    // Use .MuiDataGrid-cell to exclude the column header which also has data-field="spanCount".
+    cy.get('.MuiDataGrid-cell[data-field="spanCount"]', { timeout: 10000 }).first().as('spansCell');
+    cy.get('@spansCell').invoke('text').should('match', /\d+ spans/);
+    cy.get('@spansCell').find('.MuiBox-root').should('exist');
+
+    cy.log('Verify the Start time column header is present');
+    cy.contains('.MuiDataGrid-columnHeaderTitle', 'Start time').should('be.visible');
+
+    cy.log('Verify Start time cells contain a date/time value');
+    // PR #655 reduced the Start time column minWidth (240→110) and flex (3→2)
+    // to enable word wrap; the cell itself renders a locale date string.
+    cy.get('.MuiDataGrid-cell[data-field="startTimeUnixMs"]').first().invoke('text').should('not.be.empty');
   });
 
   it('[Capability:UIPlugin][Capability:TLSCertRotation] Test dynamic TLS certificate rotation without pod restart', function () {

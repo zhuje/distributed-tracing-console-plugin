@@ -84,7 +84,7 @@ The test suite includes comprehensive PatternFly-aware custom commands:
 - **OCP compatibility**: `cy.dismissWelcomeModal()` handles the OCP 4.22+ "Welcome to the new OpenShift experience!" modal overlay
 
 #### Test Types
-1. **Cypress E2E Tests**: Main UI automation testing the plugin functionality (12 tests covering empty state, trace visualization, RBAC, trace limits, cutoff box, AI analysis, TraceQL queries, custom time range, scatter plot, attribute-based filtering, TLS certificate rotation, TLS profiles, and operator installation). Validated on OCP 4.22 nightly. Test order: TLSCertRotation runs before TLSProfile so that cert rotation starts with the operator at 1 replica and no tls-scanner pod present.
+1. **Cypress E2E Tests**: Main UI automation testing the plugin functionality (15 tests covering empty state, trace visualization, RBAC, trace limits, cutoff box, AI analysis, TraceQL queries, custom time range, scatter plot, attribute-based filtering, Gantt chart span search (perses/plugins#661), Gantt chart attribute pane resizing (perses/plugins#636), trace table column word wrap (perses/plugins#655), TLS certificate rotation, TLS profiles, and operator installation). Validated on OCP 4.22 nightly. Test order: TLSCertRotation runs before TLSProfile so that cert rotation starts with the operator at 1 replica and no tls-scanner pod present.
 2. **Chainsaw Tests**: Kubernetes-native testing for RBAC, TLS profiles, cert rotation, and operator behavior
 3. **Debug Tests**: Rapid iteration tests without full setup/teardown
 
@@ -133,6 +133,12 @@ After each deployment rollout triggered by `wait_for_rollout()`, the shared help
 A `cy.verifyTracesVisible()` call is placed immediately after `tls-profile-setup` in the Cypress test to confirm the plugin is still accessible before any profile-specific changes begin. This gives a clear failure signal if `scale_down_operator()` does not fully restore console registration.
 
 The `[Capability:TLSCertRotation]` test runs **before** `[Capability:TLSProfile]` so that cert rotation starts with the operator at 1 replica and no tls-scanner pod present. The `[Capability:TLSProfile]` revert step restores the operator to 1 replica before the `[Capability:Installation]` test begins.
+
+### UIPlugin lifecycle in the `before` hook (SKIP_COO_INSTALL=true)
+
+When `CYPRESS_SKIP_COO_INSTALL=true`, the `before` hook uses `oc apply` (idempotent) to ensure the `distributed-tracing` UIPlugin exists — creating it if missing, no-op if already present. It then polls up to 120 s for the plugin `Deployment` to appear and waits for `rollout status`. This avoids the delete/recreate cycle that previously caused `__load_plugin_entry__ is not defined` errors: deleting the UIPlugin removes it from `consoles/cluster spec.plugins`, so the console tries to load a stale cached plugin script with no handler registered. The idempotent apply pattern works equally well in CI (where no UIPlugin exists at test start) and in repeated manual runs (where one is already present).
+
+**OCP version requirement:** The plugin is built with `@openshift-console/dynamic-plugin-sdk: ^4.22.0-prerelease.2`, which requires **OCP 4.22+**. On OCP 4.21 the console does not register the `__load_plugin_entry__` handler for 4.22-prerelease plugins, causing all browser-based tests to fail.
 
 ### TLS Certificate Rotation Testing
 The chainsaw test in `fixtures/chainsaw-tests/cert-rotation/` verifies that the plugin backend dynamically reloads its TLS certificate after the serving secret is rotated, **without a pod restart**. It rotates the serving secret, waits for the new cert to propagate via volume mount, confirms the plugin serves the new cert via openssl, and asserts the pod was not restarted throughout.

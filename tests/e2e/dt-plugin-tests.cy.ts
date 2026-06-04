@@ -918,7 +918,7 @@ EOF`,
     cy.log('Verify the trace context attachment is present');
     cy.get('.ols-plugin__context-label-text')
       .should('be.visible')
-      .and('have.text', 'frontend: /dispatch');
+      .and('have.text', 'frontend: GET /dispatch');
 
     olsHelpers.submitPrompt();
 

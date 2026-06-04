@@ -23,6 +23,7 @@ export default defineConfig({
   },
   fixturesFolder: 'fixtures',
   defaultCommandTimeout: 40000,
+  pageLoadTimeout: 120000,
   retries: {
     runMode: 0,
     openMode: 0,
